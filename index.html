@@ -1,250 +1,434 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <meta name="google-site-verification" content="ppG1nRJg2zroiEkYgxv9D42vVXcpvDgWNoG8-z3srNs" />
-  <title>Engineer Portfolio</title>
-  <style>
-    :root {
-      --primary: #0af;
-      --bg: #0a0a12;
-      --text: #fff;
-      --accent: #0ff;
-    }
-    body {
-      font-family: 'Courier New', monospace;
-      background: var(--bg);
-      color: var(--text);
-      margin: 0;
-      padding: 0;
-      line-height: 1.6;
-    }
-    a {
-      color: var(--primary);
-      text-decoration: none;
-      transition: color 0.3s;
-    }
-    a:hover { color: var(--accent); }
 
-    nav {
-      display: flex;
-      justify-content: center;
-      gap: 1rem;
-      padding: 1.2rem;
-      border-bottom: 1px solid var(--primary);
-    }
-    nav a {
-      padding: 0.5rem 1rem;
-      border: 1px solid var(--primary);
-      border-radius: 20px;
-      transition: all 0.3s ease;
-    }
-    nav a:hover {
-      background: rgba(0, 170, 255, 0.15);
-      box-shadow: 0 0 8px var(--primary);
-    }
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
 
-    .terminal {
-      background: linear-gradient(135deg, #111, #0a0a0a);
-      border-radius: 10px;
-      max-width: 800px;
-      margin: 2rem auto;
-      padding: 1.5rem;
-      box-shadow: 0 0 25px rgba(0, 170, 255, 0.25);
-    }
-    #terminal-text { min-height: 120px; }
-    .cursor {
-      animation: blink 1s infinite;
-    }
-    @keyframes blink { 50% { opacity: 0; } }
+<title>Raj Mane | AI Engineer</title>
 
-    .projects {
-      display: grid;
-      grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
-      gap: 1.5rem;
-      padding: 2rem;
-      max-width: 1200px;
-      margin: 0 auto;
-    }
-    .project-card {
-      background: #111;
-      border: 1px solid var(--primary);
-      border-radius: 10px;
-      padding: 1.5rem;
-      transition: transform 0.4s, box-shadow 0.4s;
-      position: relative;
-      overflow: hidden;
-    }
-    .project-card h3 {
-      margin-top: 0;
-    }
-    .project-card p {
-      opacity: 0.85;
-    }
-    .project-card:hover {
-      transform: translateY(-5px) scale(1.02);
-      box-shadow: 0 10px 20px rgba(0, 170, 255, 0.2);
-    }
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600&family=Space+Grotesk:wght@600&display=swap" rel="stylesheet">
 
-    /* Glow underline animation for nav */
-    nav a::after {
-      content: '';
-      display: block;
-      width: 0;
-      height: 2px;
-      background: var(--primary);
-      transition: width 0.3s;
-      margin-top: 5px;
-    }
-    nav a:hover::after {
-      width: 100%;
-    }
+<style>
 
-    .skills {
-      padding: 2rem;
-      max-width: 900px;
-      margin: 0 auto;
-    }
-    .skills h2 {
-      text-align: center;
-      margin-bottom: 1rem;
-    }
-    .skill-tags {
-      display: flex;
-      flex-wrap: wrap;
-      justify-content: center;
-      gap: 0.8rem;
-    }
-    .skill-tags span {
-      background: rgba(0, 170, 255, 0.1);
-      border: 1px solid var(--primary);
-      padding: 0.4rem 1rem;
-      border-radius: 20px;
-      transition: background 0.3s;
-    }
-    .skill-tags span:hover {
-      background: rgba(0, 170, 255, 0.2);
-    }
+:root{
+--primary:#00eaff;
+--secondary:#0077ff;
+--bg:#050510;
+--card:#0c1024;
+}
 
-    footer {
-      text-align: center;
-      padding: 2rem;
-      border-top: 1px solid var(--primary);
-      margin-top: 3rem;
-      opacity: 0.8;
-      font-size: 0.9rem;
-    }
-  </style>
+*{
+margin:0;
+padding:0;
+box-sizing:border-box;
+}
+
+body{
+font-family:Inter;
+background:var(--bg);
+color:white;
+overflow-x:hidden;
+}
+
+/* PARTICLE BACKGROUND */
+
+canvas{
+position:fixed;
+top:0;
+left:0;
+z-index:-1;
+}
+
+/* NAVBAR */
+
+nav{
+display:flex;
+justify-content:space-between;
+padding:20px 10%;
+position:sticky;
+top:0;
+background:rgba(5,5,15,0.6);
+backdrop-filter:blur(12px);
+border-bottom:1px solid rgba(255,255,255,0.05);
+}
+
+nav a{
+color:white;
+text-decoration:none;
+margin-left:25px;
+opacity:0.8;
+}
+
+nav a:hover{
+color:var(--primary);
+}
+
+/* HERO */
+
+.hero{
+height:90vh;
+display:flex;
+flex-direction:column;
+justify-content:center;
+padding:0 10%;
+}
+
+.hero h1{
+font-size:70px;
+font-family:"Space Grotesk";
+background:linear-gradient(90deg,#00eaff,#0077ff);
+-webkit-background-clip:text;
+-webkit-text-fill-color:transparent;
+}
+
+.hero p{
+margin-top:20px;
+font-size:20px;
+max-width:650px;
+opacity:0.85;
+}
+
+button{
+margin-top:35px;
+padding:12px 28px;
+border:none;
+border-radius:30px;
+background:linear-gradient(90deg,#00eaff,#0077ff);
+color:black;
+font-weight:600;
+cursor:pointer;
+}
+
+/* SECTIONS */
+
+section{
+padding:120px 10%;
+}
+
+.title{
+font-size:38px;
+margin-bottom:40px;
+font-family:"Space Grotesk";
+}
+
+/* GRID */
+
+.grid{
+display:grid;
+grid-template-columns:repeat(auto-fit,minmax(300px,1fr));
+gap:30px;
+}
+
+/* CARDS */
+
+.card{
+background:rgba(18,22,50,0.6);
+backdrop-filter:blur(20px);
+padding:30px;
+border-radius:18px;
+border:1px solid rgba(255,255,255,0.05);
+transition:0.4s;
+}
+
+.card:hover{
+transform:translateY(-10px);
+box-shadow:0 20px 50px rgba(0,234,255,0.25);
+}
+
+.card h3{
+color:var(--primary);
+margin-bottom:10px;
+}
+
+/* CONTACT */
+
+.contact{
+text-align:center;
+}
+
+.contact a{
+display:inline-block;
+margin:10px;
+color:var(--primary);
+text-decoration:none;
+}
+
+/* FOOTER */
+
+footer{
+text-align:center;
+padding:40px;
+opacity:0.6;
+}
+
+/* SCROLL ANIMATION */
+
+.fade{
+opacity:0;
+transform:translateY(50px);
+transition:1s;
+}
+
+.fade.show{
+opacity:1;
+transform:translateY(0);
+}
+
+</style>
+
 </head>
+
 <body>
 
-  <div class="terminal">
-    <div id="terminal-text"></div>
-    <span class="cursor">|</span>
-  </div>
+<canvas id="bg"></canvas>
 
-  <nav>
-    <a href="#about">About</a>
-    <a href="#projects">Projects</a>
-    <a href="#skills">Skills</a>
-    <a href="#contact">Contact</a>
-  </nav>
-  <!-- About Section -->
-<section id="about" style="padding: 2rem; max-width: 800px; margin: 0 auto; text-align: center; border-top: 1px solid var(--primary);">
-    <h2>👋 About Me</h2>
-    <p style="margin-top: 1rem; font-size: 1.1rem; line-height: 1.8;">
-      Hey there! I'm <strong>Raj Mane</strong>, a passionate Computer Engineering student with a strong interest in AI, computer vision, and immersive game development. 
-      I enjoy turning ideas into functional, engaging applications — whether it's creating interactive web apps, AI-drivenonents.
-    </p>
-    <p style="margin-top: 1rem; font-size: 1.1rem; line-height: 1.8;">
-      My projects reflect a mix of creativity and technical expertise, ranging from webcam-based air drawing apps with voice commands to intelligent face recognition systems 
-      and nostalgic vehicle racing games.
-    </p>
-    <p style="margin-top: 1rem; font-size: 1.1rem; line-height: 1.8;">
-      I'm always eager to learn, build, and collaborate on innovative projects. Let’s create something awesome together!
-    </p>
-  </section>
-  
+<nav>
 
-  <section id="projects" class="projects">
-    <div class="project-card">
-      <h3>🎨 Air Paint Web App</h3>
-      <p>Python Flask + OpenCV + Gesture & Voice Commands</p>
-      <a href="https://air-paint.onrender.com/" target="_blank">View Web App →</a>
-    </div>
-    <div class="project-card">
-      <h3>🧑‍💻 Face Recognition System</h3>
-      <p>Python + Flask + Bash Scripts + HTML</p>
-      
-    </div>
-    <div class="project-card">
-      <h3>🏎️ Vehicle Racing Game</h3>
-      <p> C Language + Vehicle Example Map</p>
-      
-    </div>
-  </section>
-  
+<b>Raj Mane</b>
 
-  <section id="skills" class="skills">
-    <h2>🚀 Skills</h2>
-    <div class="skill-tags">
-      <span>Python</span>
-      <span>C++</span>
-      <span>Arduino</span>
-      <span>JavaScript</span>
-      <span>OpenCV</span>
-      <span>HTML</span>
-      <span>CSS</span>
-      <span>AI Solutions</span>
-    </div>
-  </section>
-  <!-- Contact Section -->
-<section id="contact" style="padding: 2rem; text-align: center; border-top: 1px solid var(--primary);">
-    <h2>📞 Contact Me</h2>
-    <p>Feel free to reach out for collaborations, projects, or a quick chat!</p>
-    <div style="margin-top: 1rem;">
-      <a href="mailto:mmane94@gmail.com" style="margin: 0.5rem; display: inline-block;">✉️ mmane94@gmail.com</a><br>
-      <a href="https://github.com/RAJ-MANE" target="_blank" style="margin: 0.5rem; display: inline-block;">🐙 GitHub</a><br>
-      <a href="https://www.linkedin.com/in/raj-mane-5a6067328" target="_blank" style="margin: 0.5rem; display: inline-block;">🔗 LinkedIn</a>
-    </div>
-  </section>
-  
+<div>
+<a href="#projects">Projects</a>
+<a href="#experience">Experience</a>
+<a href="#contact">Contact</a>
+</div>
 
-  <footer>
-    <p>© 2025 RAJ MANE | Built with 💙 in HTML, CSS, JS</p>
-  </footer>
+</nav>
 
-  <script>
-    const terminalText = document.getElementById('terminal-text');
-    const messages = [
-      "> Welcome to my engineering portfolio",
-      "> I build embedded systems and AI solutions",
-      "> Currently studying Computer Engineering",
+<section class="hero">
 
-    ];
+<h1>Raj Mane</h1>
 
-    let i = 0;
-    function typeWriter() {
-      if (i < messages.length) {
-        terminalText.innerHTML += messages[i] + "<br>";
-        i++;
-        setTimeout(typeWriter, 900);
-      }
-    }
-    typeWriter();
+<p id="typing"></p>
 
-    document.querySelectorAll('.project-card').forEach(card => {
-      card.addEventListener('mousemove', (e) => {
-        const x = e.clientX - card.getBoundingClientRect().left;
-        const y = e.clientY - card.getBoundingClientRect().top;
-        card.style.transform = `perspective(500px) rotateX(${(y - card.offsetHeight/2) / 20}deg) rotateY(${(x - card.offsetWidth/2) / 20}deg)`;
-      });
-      card.addEventListener('mouseleave', () => {
-        card.style.transform = 'translateY(-5px) scale(1.02)';
-      });
-    });
-  </script>
+<button onclick="window.open('https://github.com/RAJ-MANE')">
+View GitHub
+</button>
+
+</section>
+
+<section>
+
+<h2 class="title">My Journey</h2>
+
+<p class="fade" style="max-width:700px;line-height:1.8">
+
+I build intelligent systems that combine artificial intelligence,
+computer vision and real-world problem solving.
+
+My journey started with curiosity about how machines understand the world.
+That curiosity evolved into building AI projects, competing in hackathons
+and leading technical initiatives at my college.
+
+Today I focus on building impactful technology that blends
+innovation with engineering.
+
+</p>
+
+</section>
+
+<section id="projects">
+
+<h2 class="title">Projects</h2>
+
+<div class="grid">
+
+<div class="card fade">
+
+<h3>Air Paint Web App</h3>
+
+<p>
+Gesture-based drawing system powered by OpenCV
+and MediaPipe with voice commands.
+</p>
+
+<a href="https://air-paint.onrender.com/" target="_blank">Live Demo →</a>
+
+</div>
+
+<div class="card fade">
+
+<h3>Face Recognition System</h3>
+
+<p>
+Real-time facial recognition pipeline built
+using Flask, OpenCV and Docker.
+</p>
+
+</div>
+
+<div class="card fade">
+
+<h3>Car Racing Game</h3>
+
+<p>
+Arcade racing game built in C++ featuring
+dynamic obstacle generation and collision detection.
+</p>
+
+</div>
+
+</div>
+
+</section>
+
+<section id="experience">
+
+<h2 class="title">Experience</h2>
+
+<div class="grid">
+
+<div class="card fade">
+
+<h3>Technical Head — AXIOS E-Cell TCET</h3>
+
+<p>
+Leading the technical initiatives of the Entrepreneurship
+Development & Innovation Cell at TCET. Supporting hackathons,
+startup ideathons and digital innovation programs.
+</p>
+
+</div>
+
+<div class="card fade">
+
+<h3>Tech Intern — Dilatio</h3>
+
+<p>
+Completed a 3+ month internship working on real-world
+technology solutions and engineering systems.
+</p>
+
+</div>
+
+</div>
+
+</section>
+
+<section>
+
+<h2 class="title">Achievements</h2>
+
+<div class="grid">
+
+<div class="card">🏆 Winner — JP Morgan GenerationTech Hackathon</div>
+
+<div class="card">🏆 Winner — Model Forge ML Competition</div>
+
+<div class="card">🏆 Winner — NEXUS MultiModal AI Challenge</div>
+
+</div>
+
+</section>
+
+<section id="contact">
+
+<h2 class="title">Contact</h2>
+
+<div class="contact">
+
+<a href="mailto:rmane9313@gmail.com">Email</a>
+
+<a href="https://github.com/RAJ-MANE">GitHub</a>
+
+<a href="#">LinkedIn</a>
+
+</div>
+
+</section>
+
+<footer>
+
+© 2026 Raj Mane
+
+</footer>
+
+<script>
+
+/* TYPEWRITER */
+
+const text="AI Engineer | Computer Vision Developer | Hackathon Winner | Technical Head AXIOS | Tech Intern @ Dilatio";
+
+let i=0;
+
+function type(){
+
+if(i<text.length){
+
+document.getElementById("typing").innerHTML+=text.charAt(i);
+
+i++;
+
+setTimeout(type,35);
+
+}
+
+}
+
+type();
+
+/* PARTICLE BACKGROUND */
+
+const canvas=document.getElementById("bg");
+
+const ctx=canvas.getContext("2d");
+
+canvas.width=window.innerWidth;
+canvas.height=window.innerHeight;
+
+let particles=[];
+
+for(let i=0;i<100;i++){
+
+particles.push({
+
+x:Math.random()*canvas.width,
+y:Math.random()*canvas.height,
+vx:(Math.random()-0.5),
+vy:(Math.random()-0.5)
+
+});
+
+}
+
+function animate(){
+
+ctx.clearRect(0,0,canvas.width,canvas.height);
+
+particles.forEach(p=>{
+
+p.x+=p.vx;
+p.y+=p.vy;
+
+if(p.x<0||p.x>canvas.width)p.vx*=-1;
+if(p.y<0||p.y>canvas.height)p.vy*=-1;
+
+ctx.beginPath();
+ctx.arc(p.x,p.y,2,0,Math.PI*2);
+ctx.fillStyle="#00eaff";
+ctx.fill();
+
+});
+
+requestAnimationFrame(animate);
+
+}
+
+animate();
+
+/* SCROLL ANIMATIONS */
+
+const observer=new IntersectionObserver(entries=>{
+entries.forEach(entry=>{
+if(entry.isIntersecting){
+entry.target.classList.add("show");
+}
+});
+});
+
+document.querySelectorAll(".fade").forEach(el=>observer.observe(el));
+
+</script>
 
 </body>
 </html>
