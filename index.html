@@ -3,728 +3,1216 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Raj Mane · glitch · torch mode</title>
-    <!-- fonts & three.js -->
+    <title>Raj Mane · 3D developer desk · full interactivity</title>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600&family=Space+Grotesk:wght@600&family=Fira+Code:wght@400;600&display=swap" rel="stylesheet">
     <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/gsap.min.js"></script>
     <style>
-        /* ---------- RESET & VARIABLES ---------- */
-        :root {
-            --primary: #00ffaa;
-            --secondary: #0066ff;
-            --bg: #0a0a14;
-            --text: #eee;
-            --card-bg: rgba(20, 30, 40, 0.4);
-            --glitch-color: #ff00c1;
-            --filter: none;
-        }
-        /* light mode (daylight) */
-        body.light {
-            --primary: #0055ff;
-            --bg: #f0f4fa;
-            --text: #111;
-            --card-bg: rgba(255,255,255,0.5);
-            --filter: none;
-        }
-        /* night vision mode */
-        body.night-vision {
-            --primary: #33ff33;
-            --bg: #030b03;
-            --text: #b0ffb0;
-            --card-bg: rgba(0,40,0,0.6);
-            --filter: hue-rotate(90deg) brightness(1.2) contrast(1.5);
-        }
-        /* hack tech mode (torch) – extreme dark, green glow, extra glitch */
-        body.hack-tech {
-            --primary: #00ff00;
-            --bg: #000000;
-            --text: #00cc00;
-            --card-bg: rgba(0,20,0,0.8);
-            --filter: brightness(0.8) contrast(1.8) hue-rotate(0deg);
-        }
-        body.hack-tech .glitch {
-            text-shadow: 0.05em 0 0 #00ff00, -0.05em -0.025em 0 #ff0000;
-            animation: glitch-skew 2s infinite linear alternate;
-        }
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-            cursor: none; /* hide default */
-        }
-        body {
-            font-family: 'Inter', sans-serif;
-            background: var(--bg);
-            color: var(--text);
-            overflow-x: hidden;
-            line-height: 1.6;
-            scroll-behavior: smooth;
-            transition: background 0.4s, color 0.3s;
-            filter: var(--filter);
-        }
-        /* ---------- CURSOR: DOT & RING + DATA ---------- */
-        #cursor-dot {
-            position: fixed;
-            width: 6px;
-            height: 6px;
-            background: var(--primary);
-            border-radius: 50%;
-            pointer-events: none;
-            z-index: 10000;
-            transform: translate(-50%, -50%);
-            box-shadow: 0 0 15px var(--primary);
-        }
-        #cursor-ring {
-            position: fixed;
-            width: 32px;
-            height: 32px;
-            border: 2px solid var(--primary);
-            border-radius: 50%;
-            pointer-events: none;
-            z-index: 9999;
-            transform: translate(-50%, -50%);
-            opacity: 0.6;
-            transition: width 0.2s, height 0.2s, opacity 0.2s;
-        }
-        #cursor-data {
-            position: fixed;
-            pointer-events: none;
-            z-index: 10001;
-            font-family: 'Fira Code', monospace;
-            font-size: 12px;
-            color: var(--primary);
-            background: rgba(0, 255, 170, 0.1);
-            padding: 8px 12px;
-            border-radius: 12px;
-            border: 1px solid var(--primary);
-            backdrop-filter: blur(4px);
-            white-space: nowrap;
-            text-transform: uppercase;
-            box-shadow: 0 0 15px rgba(0,255,170,0.3);
-            transform: translate(20px, 20px); /* offset from mouse */
-            line-height: 1.5;
-        }
-        /* ---------- LAMP ABOVE MONITOR ---------- */
-        #lamp-above {
-            position: absolute;
-            top: 10px;
-            right: calc(5% + 100px); /* near three-container */
-            width: 50px;
-            height: 50px;
-            background: rgba(30,30,50,0.7);
-            backdrop-filter: blur(10px);
-            border: 2px solid var(--primary);
-            border-radius: 50%;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            z-index: 150;
-            cursor: none;
-            box-shadow: 0 0 20px var(--primary);
-            transition: 0.3s;
-        }
-        #lamp-above span {
-            font-size: 24px;
-            filter: drop-shadow(0 0 5px var(--primary));
-        }
-        #lamp-above:hover {
-            transform: scale(1.1);
-        }
-        /* ---------- TORCH BUTTON (bottom-right) ---------- */
-        #torch-toggle {
-            position: fixed;
-            bottom: 30px;
-            right: 30px;
-            width: 60px;
-            height: 60px;
-            background: rgba(30,30,50,0.7);
-            backdrop-filter: blur(10px);
-            border: 2px solid var(--primary);
-            border-radius: 50%;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            z-index: 1000;
-            cursor: none;
-            box-shadow: 0 0 20px var(--primary);
-            transition: 0.3s;
-        }
-        #torch-toggle span {
-            font-size: 28px;
-            filter: drop-shadow(0 0 5px var(--primary));
-        }
-        #torch-toggle:hover {
-            transform: scale(1.1);
-        }
-        /* ---------- GLITCH BACKGROUND ---------- */
-        #glitch-canvas {
-            position: fixed;
-            top: 0; left: 0;
-            width: 100%; height: 100%;
-            pointer-events: none;
-            z-index: -1;
-            opacity: 0.15;
-            mix-blend-mode: screen;
-        }
-        /* ---------- PARTICLES (neural network) full page ---------- */
-        #particles {
-            position: fixed;
-            top: 0; left: 0;
-            width: 100%; height: 100%;
-            pointer-events: none;
-            z-index: -1;
-        }
-        /* ---------- NAV ---------- */
-        nav {
-            position: fixed;
-            top: 20px; left: 50%;
-            transform: translateX(-50%);
-            width: auto;
-            background: rgba(10, 20, 30, 0.7);
-            backdrop-filter: blur(15px);
-            border: 1px solid rgba(0, 255, 170, 0.3);
-            border-radius: 60px;
-            padding: 12px 30px;
-            z-index: 100;
-            display: flex;
-            gap: 40px;
-            box-shadow: 0 10px 30px rgba(0,0,0,0.5);
-        }
-        nav a {
-            color: var(--text);
-            text-decoration: none;
-            font-weight: 500;
-            font-size: 0.95rem;
-            text-transform: uppercase;
-            letter-spacing: 1px;
-            transition: 0.2s;
-            position: relative;
-        }
-        nav a:hover {
-            color: var(--primary);
-            text-shadow: 0 0 8px var(--primary);
-        }
-        nav a::after {
-            content: '';
-            position: absolute;
-            bottom: -6px; left: 0;
-            width: 0%; height: 2px;
-            background: var(--primary);
-            transition: 0.3s;
-        }
-        nav a:hover::after {
-            width: 100%;
-        }
-        /* ---------- HERO (full viewport, no blank) ---------- */
-        .hero {
-            height: 100vh;
-            display: flex;
-            align-items: center;
-            padding: 0 8%;
-            position: relative;
-        }
-        .hero-content {
-            z-index: 3;
-            max-width: 650px;
-        }
-        .glitch-wrapper {
-            position: relative;
-            margin-bottom: 20px;
-        }
-        .glitch {
-            font-size: clamp(60px, 10vw, 100px);
-            font-family: 'Space Grotesk', sans-serif;
-            color: white;
-            text-transform: uppercase;
-            line-height: 1;
-            animation: glitch-skew 4s infinite linear alternate;
-            text-shadow: 0.05em 0 0 var(--primary), -0.05em -0.025em 0 var(--glitch-color);
-        }
-        @keyframes glitch-skew {
-            0% { transform: skew(0deg); }
-            10% { transform: skew(0deg); }
-            20% { transform: skew(0deg); }
-            30% { transform: skew(2deg); }
-            40% { transform: skew(0deg); }
-            50% { transform: skew(0deg); }
-            60% { transform: skew(0deg); }
-            70% { transform: skew(2deg); }
-            80% { transform: skew(0deg); }
-            90% { transform: skew(0deg); }
-            100% { transform: skew(0deg); }
-        }
-        #typing {
-            font-size: 1.3rem;
-            color: #aaa;
-            font-family: 'Fira Code', monospace;
-            margin: 20px 0 30px;
-            border-right: 2px solid var(--primary);
+        :root { --primary: #00ffaa; --bg: #0a0a14; --text: #eee; --card-bg: rgba(20,30,40,0.4); --glitch-color: #ff00c1; }
+        body.light { --primary: #ffaa00; --bg: #fef9e7; --text: #222; --card-bg: rgba(255,255,200,0.6); }
+        body.dark { --primary: #00ffaa; --bg: #0a0a14; --text: #eee; --card-bg: rgba(20,30,40,0.4); }
+        * { margin:0; padding:0; box-sizing:border-box; cursor:none; }
+        body { font-family:'Inter',sans-serif; background:var(--bg); color:var(--text); overflow-x:hidden; line-height:1.6; transition:background 0.4s,color 0.3s; }
+        #cursor-dot, #cursor-ring, #cursor-data { position:fixed; pointer-events:none; z-index:10000; transition: opacity 0.2s; }
+        #cursor-dot { width:6px; height:6px; background:var(--primary); border-radius:50%; transform:translate(-50%,-50%); box-shadow:0 0 15px var(--primary); }
+        #cursor-ring { width:32px; height:32px; border:2px solid var(--primary); border-radius:50%; transform:translate(-50%,-50%); opacity:0.6; }
+        #cursor-data { font-family:'Fira Code',monospace; font-size:12px; color:var(--primary); background:rgba(0,255,170,0.1); padding:8px 12px; border-radius:12px; border:1px solid var(--primary); backdrop-filter:blur(4px); white-space:nowrap; transform:translate(20px,20px); }
+        body.modal-open #cursor-dot,
+        body.modal-open #cursor-ring,
+        body.modal-open #cursor-data { opacity:0; pointer-events:none; }
+        body.modal-open { cursor:auto; }
+        #torch-toggle { position:fixed; bottom:30px; right:30px; width:60px; height:60px; background:rgba(30,30,50,0.7); backdrop-filter:blur(10px); border:2px solid var(--primary); border-radius:50%; display:flex; align-items:center; justify-content:center; z-index:1000; cursor:none; box-shadow:0 0 20px var(--primary); }
+        #torch-overlay { position:fixed; top:0; left:0; width:100%; height:100%; pointer-events:none; z-index:10002; background:black; opacity:0; transition:opacity 0.3s; mask:radial-gradient(circle 150px at 0px 0px, transparent 0%, black 100%); -webkit-mask:radial-gradient(circle 150px at 0px 0px, transparent 0%, black 100%); }
+        body.torch-mode #torch-overlay { opacity:0.95; }
+        #glitch-canvas, #particles { position:fixed; top:0; left:0; width:100%; height:100%; pointer-events:none; z-index:-1; }
+        #glitch-canvas { opacity:0.15; mix-blend-mode:screen; }
+        nav { position:fixed; top:20px; left:50%; transform:translateX(-50%); background:rgba(10,20,30,0.7); backdrop-filter:blur(15px); border:1px solid rgba(0,255,170,0.3); border-radius:60px; padding:12px 30px; z-index:100; display:flex; gap:40px; }
+        nav a { color:var(--text); text-decoration:none; font-weight:500; font-size:0.95rem; text-transform:uppercase; letter-spacing:1px; }
+        nav a:hover { color:var(--primary); }
+        nav a::after { content:''; position:absolute; bottom:-6px; left:0; width:0%; height:2px; background:var(--primary); transition:0.3s; }
+        nav a:hover::after { width:100%; }
+        .hero { height:100vh; display:flex; align-items:center; padding:0 8%; position:relative; }
+        .hero-content { z-index:3; max-width:650px; }
+        .glitch { font-size:clamp(60px,10vw,100px); font-family:'Space Grotesk',sans-serif; color:white; text-transform:uppercase; animation:glitch-skew 4s infinite linear alternate; text-shadow:0.05em 0 0 var(--primary), -0.05em -0.025em 0 var(--glitch-color); }
+        @keyframes glitch-skew { 0% { transform:skew(0deg); } 30% { transform:skew(2deg); } 70% { transform:skew(2deg); } 100% { transform:skew(0deg); } }
+               #typing {
+    font-size: 1.3rem;
+    color: #aaa;
+    font-family: 'Fira Code', monospace;
+    margin: 20px 0 30px;
+    border-right: 2px solid var(--primary);
+    white-space: nowrap;
+    overflow: hidden; 
+    width: auto;      
+    display: inline-block;
+    animation: blink 0.6s step-end infinite; }      @keyframes blink { 50% { border-color:transparent; } }
+        #three-container { position:absolute; right:5%; width:45%; height:70vh; z-index:2; cursor:none; }
+        section { padding:120px 8%; opacity:0; transform:translateY(40px); transition:opacity 1s ease, transform 1s ease; }
+        section.visible { opacity:1; transform:translateY(0); }
+        .title { font-size:3.5rem; font-family:'Space Grotesk'; color:var(--primary); text-shadow:0 0 10px rgba(0,255,170,0.5); margin-bottom:50px; }
+        .about-grid { display:grid; grid-template-columns:1.5fr 1fr; gap:60px; align-items:center; }
+        #about-3d { width:100%; height:400px; cursor:none; }
+        .card { background:var(--card-bg); backdrop-filter:blur(15px); border:1px solid rgba(0,255,170,0.2); border-radius:32px; padding:40px; transition:0.4s; margin-bottom:30px; cursor:pointer; overflow:hidden; }
+        .card:hover { transform:translateY(-12px) scale(1.02); border-color:var(--primary); box-shadow:0 25px 50px rgba(0,255,170,0.25); }
+        .tech-tag { background:rgba(0,255,170,0.1); color:var(--primary); padding:6px 16px; border-radius:30px; font-size:0.85rem; border:1px solid rgba(0,255,170,0.4); display:inline-block; margin:5px 5px 0 0; }
+        .card-footer { display:flex; justify-content:space-between; align-items:center; margin-top:20px; }
+        .repo-link { color:var(--primary); font-family:'Fira Code',monospace; font-size:0.9rem; text-decoration:none; border-bottom:1px dashed; }
+        .modal { display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.9); backdrop-filter:blur(12px); align-items:center; justify-content:center; z-index:10000; opacity:0; transition:opacity 0.3s; }
+        .modal.show { display:flex; opacity:1; }
+        .modal-content { background:#0f0f1a; border:2px solid var(--primary); border-radius:40px; padding:45px; max-width:500px; width:90%; box-shadow:0 0 70px var(--primary); transform:scale(0.9); transition:transform 0.3s; }
+        .modal.show .modal-content { transform:scale(1); }
+        .modal-close { position:absolute; top:25px; right:30px; font-size:35px; color:var(--primary); cursor:pointer; }
+        .modal-title { font-family:'Space Grotesk'; font-size:2.3rem; color:var(--primary); }
+        .modal-body { margin:20px 0; }
+        .modal-link { display:inline-block; margin-top:25px; color:white; background:var(--primary); padding:10px 25px; border-radius:40px; text-decoration:none; font-weight:bold; }
+        #terminal-overlay { position:fixed; top:0; left:0; width:100%; height:100%; background:#0c0c0c; color:#0f0; font-family:'Fira Code',monospace; padding:20px; z-index:2000; display:none; border:2px solid #0f0; overflow:hidden; flex-direction:column; }
+        #terminal-overlay.show { display:flex; }
+        #terminal-output { flex:1; overflow-y:auto; margin-bottom:10px; white-space:pre-wrap; font-size:14px; line-height:1.5; }
+        #terminal-input-line { display:flex; align-items:center; background:#1a1a1a; padding:5px; border:1px solid #0f0; }
+        #terminal-prompt { color:#0f0; margin-right:5px; }
+        #terminal-command { background:transparent; border:none; color:#0f0; font-family:'Fira Code',monospace; font-size:14px; flex:1; outline:none; }
+        .close-terminal { position:absolute; top:10px; right:20px; font-size:24px; cursor:pointer; color:#0f0; }
+        #webcam-feed { position:fixed; bottom:100px; right:30px; width:240px; height:180px; border:3px solid var(--primary); border-radius:12px; overflow:hidden; z-index:1500; display:none; box-shadow:0 0 20px var(--primary); }
+        #webcam-feed video { width:100%; height:100%; object-fit:cover; }
+        .contact-links a { color:var(--text); border:1px solid var(--primary); padding:12px 30px; border-radius:40px; transition:0.3s; text-decoration:none; }
+        .contact-links a:hover { background:var(--primary); color:black; }
+        footer { text-align:center; padding:50px; border-top:1px solid rgba(255,255,255,0.1); font-family:'Fira Code',monospace; }
+        #rotate-desk { position:fixed; bottom:30px; left:30px; width:60px; height:60px; background:rgba(30,30,50,0.7); backdrop-filter:blur(10px); border:2px solid var(--primary); border-radius:50%; display:flex; align-items:center; justify-content:center; z-index:1000; cursor:none; box-shadow:0 0 20px var(--primary); font-size:28px; color:var(--primary); }
+        #keyboard-hint { position:fixed; bottom:100px; left:30px; color:var(--primary); font-family:'Fira Code',monospace; font-size:12px; background:rgba(0,0,0,0.5); padding:8px 12px; border-radius:20px; border:1px solid var(--primary); backdrop-filter:blur(5px); z-index:1000; }
+        #reset-camera { position:fixed; top:100px; right:30px; background:rgba(30,30,50,0.7); backdrop-filter:blur(10px); border:2px solid var(--primary); border-radius:50%; width:60px; height:60px; display:flex; align-items:center; justify-content:center; z-index:1000; cursor:none; box-shadow:0 0 20px var(--primary); font-size:24px; color:var(--primary); display:none; }
+        .train-track {
             white-space: nowrap;
             overflow: hidden;
-            width: 100%; /* start full width? We'll let animation reveal */
-            animation: typing 3s steps(40, end) forwards, blink 0.6s step-end infinite;
-        }
-        @keyframes typing {
-            from { width: 0; }
-            to { width: 100%; }
-        }
-        @keyframes blink {
-            50% { border-color: transparent; }
-        }
-        #three-container {
-            position: absolute;
-            right: 5%;
-            width: 45%;
-            height: 70vh;
-            z-index: 2;
-            cursor: none;
-        }
-        /* ---------- SECTIONS ---------- */
-        section {
-            padding: 120px 8%;
             position: relative;
-            opacity: 0;
-            transform: translateY(40px);
-            transition: opacity 1s ease, transform 1s ease;
-        }
-        section.visible {
-            opacity: 1;
-            transform: translateY(0);
-        }
-        .title {
-            font-size: 3.5rem;
-            font-family: 'Space Grotesk';
-            color: var(--primary);
-            text-shadow: 0 0 10px rgba(0,255,170,0.5);
-            margin-bottom: 50px;
-        }
-        .about-grid {
-            display: grid;
-            grid-template-columns: 1.5fr 1fr;
-            gap: 60px;
-            align-items: center;
-        }
-        #about-3d {
-            width: 100%;
-            height: 400px;
-            cursor: none;
-        }
-        /* ---------- PROJECT CARDS (clickable) ---------- */
-        .card {
-            background: var(--card-bg);
-            backdrop-filter: blur(15px);
-            border: 1px solid rgba(0, 255, 170, 0.2);
-            border-radius: 32px;
-            padding: 40px;
-            transition: 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
-            margin-bottom: 30px;
-            cursor: pointer;
-            position: relative;
-            overflow: hidden;
-        }
-        .card:hover {
-            transform: translateY(-12px) scale(1.02);
-            border-color: var(--primary);
-            box-shadow: 0 25px 50px rgba(0, 255, 170, 0.25);
-        }
-        .card::before {
-            content: '';
-            position: absolute;
-            top: 0; left: -100%;
-            width: 100%; height: 100%;
-            background: linear-gradient(90deg, transparent, rgba(0,255,170,0.1), transparent);
-            transition: left 0.6s;
-        }
-        .card:hover::before {
-            left: 100%;
-        }
-        .tech-tag {
-            background: rgba(0, 255, 170, 0.1);
-            color: var(--primary);
-            padding: 6px 16px;
-            border-radius: 30px;
-            font-size: 0.85rem;
-            border: 1px solid rgba(0,255,170,0.4);
-            display: inline-block;
-            margin: 5px 5px 0 0;
-        }
-        .card-footer {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            margin-top: 20px;
-        }
-        .repo-link {
-            color: var(--primary);
             font-family: 'Fira Code', monospace;
-            font-size: 0.9rem;
-            text-decoration: none;
-            border-bottom: 1px dashed;
-        }
-        /* ---------- MODAL ---------- */
-        .modal {
-            display: none;
-            position: fixed;
-            top: 0; left: 0; width: 100%; height: 100%;
-            background: rgba(0,0,0,0.9);
-            backdrop-filter: blur(12px);
-            align-items: center;
-            justify-content: center;
-            z-index: 10000;
-            opacity: 0;
-            transition: opacity 0.3s;
-        }
-        .modal.show {
-            display: flex;
-            opacity: 1;
-        }
-        .modal-content {
-            background: #0f0f1a;
-            border: 2px solid var(--primary);
-            border-radius: 40px;
-            padding: 45px;
-            max-width: 500px;
-            width: 90%;
-            box-shadow: 0 0 70px var(--primary);
-            transform: scale(0.9);
-            transition: transform 0.3s;
-        }
-        .modal.show .modal-content {
-            transform: scale(1);
-        }
-        .modal-close {
-            position: absolute;
-            top: 25px; right: 30px;
-            font-size: 35px;
+            font-size: 1.2rem;
             color: var(--primary);
-            cursor: pointer;
-            background: none;
-            border: none;
-        }
-        .modal-title {
-            font-family: 'Space Grotesk';
-            font-size: 2.3rem;
-            color: var(--primary);
-        }
-        .modal-link {
-            display: inline-block;
-            margin-top: 25px;
-            color: white;
-            background: var(--primary);
-            padding: 10px 25px;
-            border-radius: 40px;
-            text-decoration: none;
-            font-weight: bold;
-        }
-        /* ---------- CONTACT & FOOTER ---------- */
-        .contact-links a {
-            color: var(--text);
+            animation: marquee 20s linear infinite;
+            mask: linear-gradient(to right, transparent, black 20%, black 80%, transparent);
+            -webkit-mask: linear-gradient(to right, transparent, black 20%, black 80%, transparent);
+            background: rgba(0,0,0,0.8);
+            padding: 20px;
+            border-radius: 10px;
             border: 1px solid var(--primary);
-            padding: 12px 30px;
-            border-radius: 40px;
-            transition: 0.3s;
-            text-decoration: none;
         }
-        .contact-links a:hover {
-            background: var(--primary);
-            color: black;
+        @keyframes marquee {
+            0% { transform: translateX(100%); }
+            100% { transform: translateX(-100%); }
         }
-        footer {
-            text-align: center;
-            padding: 50px;
-            border-top: 1px solid rgba(255,255,255,0.1);
-            font-family: 'Fira Code', monospace;
-            font-size: 0.8rem;
-        }
-        @media (max-width: 900px) {
-            #cursor-dot, #cursor-ring, #cursor-data, #lamp-above, #torch-toggle { display: none; }
-            body { cursor: auto; }
-            .hero { flex-direction: column; }
-            #three-container { width: 100%; height: 300px; position: relative; right: 0; }
-            .about-grid { grid-template-columns: 1fr; }
-            nav { gap: 20px; padding: 10px 20px; }
-        }
+        @media (max-width:900px) { #cursor-dot, #cursor-ring, #cursor-data, #torch-toggle, #torch-overlay, #rotate-desk, #keyboard-hint, #reset-camera { display:none; } body { cursor:auto; } .hero { flex-direction:column; } #three-container { width:100%; height:300px; position:relative; right:0; } .about-grid { grid-template-columns:1fr; } nav { gap:20px; padding:10px 20px; } }
+        body.modal-open #three-container { pointer-events: none; }
     </style>
 </head>
-<body>
+<body class="dark">
 
-<!-- CURSOR: dot, ring, and data -->
+<!-- CURSOR -->
 <div id="cursor-dot"></div>
 <div id="cursor-ring"></div>
-<div id="cursor-data">STATUS: SCANNING...<br>X: 0 Y: 0</div>
+<div id="cursor-data">STATUS: DESK_READY<br>X: 0 Y: 0</div>
 
-<!-- LAMP ABOVE MONITOR (toggles light/dark) -->
-<div id="lamp-above" title="toggle light/dark mode">
-    <span>💡</span>
-</div>
+<!-- TORCH & ROTATE BUTTONS -->
+<div id="torch-toggle" title="toggle torch mode"><span>🔥</span></div>
+<div id="rotate-desk" title="rotate desk 360°"><span>↻</span></div>
+<div id="keyboard-hint">← → arrows rotate · drag to rotate</div>
+<div id="reset-camera" title="reset camera"><span>🏠</span></div>
+<div id="torch-overlay"></div>
 
-<!-- TORCH BUTTON (hack tech mode) -->
-<div id="torch-toggle" title="activate hack tech mode">
-    <span>🔥</span>
-</div>
 
-<!-- GLITCH BACKGROUND -->
+<!-- BACKGROUNDS -->
 <canvas id="glitch-canvas"></canvas>
-
-<!-- PARTICLES (neural network) full page -->
 <canvas id="particles"></canvas>
 
-<!-- NAVIGATION -->
+<!-- NAV -->
 <nav>
     <a href="#about">[ about ]</a>
     <a href="#projects">[ projects ]</a>
     <a href="#contact">[ contact ]</a>
 </nav>
 
-<!-- HERO SECTION (no github button) -->
+<!-- HERO -->
 <div class="hero">
     <div class="hero-content">
-        <div class="glitch-wrapper">
-            <h1 class="glitch">Raj Mane</h1>
-        </div>
-        <p id="typing">AI Engineer | Computer Vision | Tech Head AXIOS | Intern @ Dilatio</p>
-        <!-- The typing effect will animate over this text; we prefill to avoid blank -->
+        <div class="glitch">Raj Mane</div>
+        <p id="typing">Computer  Engineer| AI | Intern at @Dilatio</p>
     </div>
     <div id="three-container"></div>
 </div>
 
-<!-- ABOUT SECTION -->
+<!-- ABOUT -->
 <section id="about">
     <div class="about-grid">
         <div>
-            <h2 class="title">// technical portfolio</h2>
-            <h3 style="color: var(--text); margin-bottom: 20px;">AI · Computer Vision · Full‑Stack</h3>
-            <p style="opacity: 0.8;">Building intelligent, interactive systems that merge machine learning, gesture control, and scalable architectures. From research to deployment — every project is a narrative of innovation.</p>
-            <p style="margin-top: 20px; opacity: 0.7;">Click the 3D monitor to open GitHub, or the knot for a project modal.</p>
-        </div>
+            <h2 class="title">// Technical Portfolio</h2>
+            <h3 style="color: var(--text); margin-bottom:20px;">Intern · Tech Head</h3>
+            <p style="opacity:0.8;"> 
+
+I am a developer passionate about building intelligent, interactive, and user-centric software systems that combine modern technologies such as Artificial Intelligence, Computer Vision, Web Development, and Software Engineering principles. My work focuses on solving real-world problems through innovative digital solutions that integrate machine learning, gesture recognition, human–computer interaction, and scalable web architectures.Throughout my development journey, I have worked on several projects that demonstrate my ability to design and implement complete end-to-end systems, from conceptualization and architecture to deployment and real-world usability.
+The following projects represent my most significant work and reflect my approach to software engineering: innovation, problem solving, and building practical systems with real-world applications.
+
+My portfolio reflects my commitment to building innovative technology solutions that combine artificial intelligence, computer vision, and modern web development practices. Through projects such as Air Paint and AuraHire, I have explored how advanced technologies can improve human–computer interaction and create intelligent digital systems.
+
+At the same time, my experience with Java and web development has strengthened my understanding of fundamental software engineering principles and structured programming techniques.
+
+Moving forward, I aim to continue developing systems that leverage AI, machine learning, and full-stack development to solve meaningful real-world problems. My goal is to contribute to the advancement of intelligent applications that make technology more interactive, accessible, and impactful.</p>
+     </div>
         <div id="about-3d"></div>
     </div>
 </section>
 
-<!-- PROJECTS SECTION (clickable cards) -->
+<!-- PROJECTS (updated with new projects) -->
 <section id="projects">
     <h2 class="title">// featured systems</h2>
-
-    <div class="card" data-repo="https://github.com/RAJ-MANE/air-paint" data-title="Air Paint" data-desc="Gesture-controlled drawing with voice commands. Uses MediaPipe + OpenCV + Flask.">
-        <h3 class="subtitle">1. Air Paint Web App</h3>
-        <p><i>Gesture & voice enabled drawing</i></p>
-        <div class="tech-stack">
-            <span class="tech-tag">Python</span><span class="tech-tag">OpenCV</span><span class="tech-tag">MediaPipe</span><span class="tech-tag">Flask</span><span class="tech-tag">JS</span>
-        </div>
-        <div class="card-footer">
-            <span class="repo-link">▶ click card for details</span>
-        </div>
+    <!-- 1. AIR_PAINT_BASE -->
+    <div class="card" data-repo="https://github.com/RAJ-MANE/AIR_PAINT_BASE" data-title="AIR_PAINT_BASE" data-desc="A computer vision project that enables users to draw in the air using hand gestures. The system captures real-time video from a webcam and tracks hand movements to simulate digital painting without touching any physical device. Demonstrates AI, computer vision, and gesture recognition for interactive virtual drawing.">
+        <h3>1. AIR_PAINT_BASE</h3>
+        <p><i>Gesture-based air drawing</i></p>
+        <div><span class="tech-tag">Python</span><span class="tech-tag">OpenCV</span><span class="tech-tag">MediaPipe</span></div>
+        <div class="card-footer"><span class="repo-link">▶ click card for details</span></div>
     </div>
-
-    <div class="card" data-repo="https://github.com/RAJ-MANE/aurahire" data-title="AuraHire" data-desc="AI mock interview platform with real-time facial expression & confidence analysis. 3D avatar + NLP feedback.">
-        <h3 class="subtitle">2. AuraHire – AI Mock Interview</h3>
-        <p>Facial analysis & avatar interaction</p>
-        <div class="tech-stack">
-            <span class="tech-tag">ML</span><span class="tech-tag">NLP</span><span class="tech-tag">CV</span><span class="tech-tag">React</span><span class="tech-tag">3D</span>
-        </div>
-        <div class="card-footer">
-            <span class="repo-link">▶ click card for details</span>
-        </div>
+    <!-- 2. SUPPLY_CHAIN_MANAGEMENT_JAVA -->
+    <div class="card" data-repo="https://github.com/RAJ-MANE/SUPPLY_CHAIN_MANAGEMENT_JAVA" data-title="SUPPLY_CHAIN_MANAGEMENT_JAVA" data-desc="A Java-based application designed to simulate and manage operations involved in a supply chain. Helps manage product flow, suppliers, inventory, and orders between different parts of the supply chain.">
+        <h3>2. Supply Chain Management (Java)</h3>
+        <p><i>OOP & inventory simulation</i></p>
+        <div><span class="tech-tag">Java</span><span class="tech-tag">OOP</span><span class="tech-tag">Data Structures</span></div>
+        <div class="card-footer"><span class="repo-link">▶ click card for details</span></div>
     </div>
-
-    <div class="card" data-repo="https://github.com/RAJ-MANE/java-oop-systems" data-title="Java OOP Systems" data-desc="Student management, constructor overloading, modular backend architectures.">
-        <h3 class="subtitle">3. Software Engineering (Java)</h3>
-        <p>OOP & data management</p>
-        <div class="tech-stack">
-            <span class="tech-tag">Java</span><span class="tech-tag">OOP</span><span class="tech-tag">Backend</span><span class="tech-tag">Data Structures</span>
-        </div>
-        <div class="card-footer">
-            <span class="repo-link">▶ click card for details</span>
-        </div>
+    <!-- 3. MODEL_FORGE (ImprovYu) -->
+    <div class="card" data-repo="https://github.com/RAJ-MANE/MODEL_FORGE" data-title="ImprovYu" data-desc="A full-stack, multimodal AI interview preparation platform that performs real-time facial expression analysis, voice analytics, and AI-driven question generation & evaluation — all client-side with WebSocket live feedback. Supports English and 10 Indian languages via Sarvam AI. Includes ATS Resume Checker, Salary Estimator, and more.">
+        <h3>3. ImprovYu – AI Interview Coach</h3>
+        <p><i>Multimodal AI interview prep</i></p>
+        <div><span class="tech-tag">ML</span><span class="tech-tag">NLP</span><span class="tech-tag">CV</span><span class="tech-tag">React</span><span class="tech-tag">WebSocket</span></div>
+        <div class="card-footer"><span class="repo-link">▶ click card for details</span></div>
+    </div>
+    <!-- 4. Car_Game_C -->
+    <div class="card" data-repo="https://github.com/RAJ-MANE/Car_Game_C" data-title="2D Car Racing Game" data-desc="A simple 2D car racing game built using C++ and the graphics.h library. The player controls a red car, avoiding oncoming blue obstacle cars while staying within road boundaries. Score tracks how many obstacles are dodged.">
+        <h3>4. Car Racing Game (C++)</h3>
+        <p><i>2D arcade-style game</i></p>
+        <div><span class="tech-tag">C++</span><span class="tech-tag">graphics.h</span></div>
+        <div class="card-footer"><span class="repo-link">▶ click card for details</span></div>
+    </div>
+    <!-- 5. FACE.RECOGNITION -->
+    <div class="card" data-repo="https://github.com/RAJ-MANE/FACE.RECOGNITION" data-title="Face Recognition System" data-desc="Real-time face recognition system with face_recognition, OpenCV, and Flask. Real-time video streaming, face detection, and recognition with saved photos for authentication. Web-based, accessible on any device in a shared network.">
+        <h3>5. Face Recognition (Flask)</h3>
+        <p><i>Real-time face authentication</i></p>
+        <div><span class="tech-tag">Python</span><span class="tech-tag">OpenCV</span><span class="tech-tag">Flask</span></div>
+        <div class="card-footer"><span class="repo-link">▶ click card for details</span></div>
     </div>
 </section>
 
-<!-- CONTACT SECTION -->
-<section id="contact" style="text-align: center;">
+<!-- CONTACT -->
+<section id="contact" style="text-align:center;">
     <h2 class="title">// connect</h2>
-    <p style="margin-bottom: 50px;">collaborate · innovate · build</p>
+    <p style="margin-bottom:50px;">collaborate · innovate · build</p>
     <div class="contact-links">
-        <a href="mailto:rmane9313@gmail.com">email</a>
+        <a href="mailto:mmane9313@gmail.com">email</a>
         <a href="https://github.com/RAJ-MANE" target="_blank">github</a>
         <a href="https://www.linkedin.com/in/raj-mane-268a95371" target="_blank">linkedin</a>
     </div>
 </section>
 
-<footer>
-    © 2026 Raj Mane · 3D interactive · glitch aesthetic
-</footer>
+<footer>© 2026 Raj Mane · Computer Engineer</footer>
 
-<!-- MODAL POPUP -->
+<!-- MODAL -->
 <div id="projectModal" class="modal">
     <div class="modal-content">
         <span class="modal-close">&times;</span>
         <div class="modal-title" id="modalTitle">Project</div>
-        <div class="modal-body" id="modalBody">
-            <p>details...</p>
-        </div>
+        <div class="modal-body" id="modalBody"><p>details...</p></div>
         <a href="#" id="modalLink" target="_blank" class="modal-link">→ open repository</a>
     </div>
 </div>
 
+<!-- INTERACTIVE TERMINAL OVERLAY -->
+<div id="terminal-overlay">
+    <span class="close-terminal" onclick="document.getElementById('terminal-overlay').classList.remove('show'); document.body.classList.remove('modal-open');">✕</span>
+    <div id="terminal-output">
+        > Welcome to Raj's dev terminal<br>
+        > Type 'help' for available commands.<br>
+    </div>
+    <div id="terminal-input-line">
+        <span id="terminal-prompt">$</span>
+        <input type="text" id="terminal-command" autocomplete="off" />
+    </div>
+</div>
+
+<!-- WEBCAM FEED -->
+<div id="webcam-feed">
+    <video id="webcam-video" autoplay playsinline></video>
+</div>
+
 <script>
 (function() {
-    // ========== CURSOR: dot, ring, and data ==========
+    // ========== CURSOR, TORCH, MODAL HELPERS ==========
     const dot = document.getElementById('cursor-dot');
     const ring = document.getElementById('cursor-ring');
     const data = document.getElementById('cursor-data');
-    let mouseX = 0, mouseY = 0;
-    let ringX = 0, ringY = 0;
+    const overlay = document.getElementById('torch-overlay');
+    let mouseX = 0, mouseY = 0, ringX = 0, ringY = 0;
     document.addEventListener('mousemove', (e) => {
-        mouseX = e.clientX;
-        mouseY = e.clientY;
-        dot.style.left = mouseX + 'px';
-        dot.style.top = mouseY + 'px';
-        // ring follows smoothly
-        data.style.left = mouseX + 'px';
-        data.style.top = mouseY + 'px';
-        data.innerHTML = `STATUS: ACTIVE<br>X: ${mouseX} Y: ${mouseY}<br>OBJ_DET: DEVELOPER`;
+        mouseX = e.clientX; mouseY = e.clientY;
+        dot.style.left = mouseX + 'px'; dot.style.top = mouseY + 'px';
+        data.style.left = mouseX + 'px'; data.style.top = mouseY + 'px';
+        data.innerHTML = `STATUS: DESK_ACTIVE<br>X: ${mouseX} Y: ${mouseY}`;
+        overlay.style.mask = `radial-gradient(circle 150px at ${mouseX}px ${mouseY}px, transparent 0%, black 100%)`;
+        overlay.style.webkitMask = `radial-gradient(circle 150px at ${mouseX}px ${mouseY}px, transparent 0%, black 100%)`;
     });
     function animateRing() {
-        ringX += (mouseX - ringX) * 0.2;
-        ringY += (mouseY - ringY) * 0.2;
-        ring.style.left = ringX + 'px';
-        ring.style.top = ringY + 'px';
+        ringX += (mouseX - ringX) * 0.2; ringY += (mouseY - ringY) * 0.2;
+        ring.style.left = ringX + 'px'; ring.style.top = ringY + 'px';
         requestAnimationFrame(animateRing);
+    } animateRing();
+
+    const torchBtn = document.getElementById('torch-toggle');
+    torchBtn.addEventListener('click', () => {
+        document.body.classList.toggle('torch-mode');
+        torchBtn.innerHTML = document.body.classList.contains('torch-mode') ? '<span>🔦</span>' : '<span>🔥</span>';
+    });
+
+    // Rotate button
+    const rotateBtn = document.getElementById('rotate-desk');
+
+    // Modal helpers
+    const modal = document.getElementById('projectModal');
+    const modalTitle = document.getElementById('modalTitle');
+    const modalBody = document.getElementById('modalBody');
+    const modalLink = document.getElementById('modalLink');
+    const modalClose = document.querySelector('.modal-close');
+    window.showModal = (title, desc, link) => {
+        modalTitle.innerText = title; modalBody.innerHTML = `<p>${desc}</p>`; modalLink.href = link; 
+        modal.classList.add('show');
+        document.body.classList.add('modal-open');
+    };
+    modalClose.addEventListener('click', () => { 
+        modal.classList.remove('show');
+        document.body.classList.remove('modal-open');
+    });
+    window.addEventListener('click', (e) => { 
+        if (e.target === modal) {
+            modal.classList.remove('show');
+            document.body.classList.remove('modal-open');
+        }
+    });
+
+    // Terminal interactivity
+    const terminalOverlay = document.getElementById('terminal-overlay');
+    const terminalOutput = document.getElementById('terminal-output');
+    const terminalInput = document.getElementById('terminal-command');
+    const closeTerminal = document.querySelector('.close-terminal');
+
+    function addTerminalLine(text) {
+        terminalOutput.innerHTML += text + '<br>';
+        terminalOutput.scrollTop = terminalOutput.scrollHeight;
     }
-    animateRing();
 
-    // ========== LAMP ABOVE MONITOR (light/dark toggle) ==========
-    const lamp = document.getElementById('lamp-above');
-    let lampMode = 0; // 0: dark, 1: light
-    lamp.addEventListener('click', () => {
-        // remove any existing theme classes, but preserve hack-tech? We'll let hack-tech override; if hack-tech is on, turning lamp off might turn it off? We'll just handle lamp independently.
-        if (document.body.classList.contains('hack-tech')) {
-            // if hack-tech is on, turning lamp does nothing? Or we could disable hack-tech? Let's make lamp work even in hack-tech, but hack-tech overrides colors. Simpler: lamp toggles between light and dark, and if hack-tech is on, we turn it off.
-            document.body.classList.remove('hack-tech');
+    function processCommand(cmd) {
+        const lower = cmd.trim().toLowerCase();
+        if (lower === 'help') {
+            addTerminalLine('> Available commands: about, projects, contact, github, clear');
+        } else if (lower === 'about') {
+            addTerminalLine('> Opening About modal...');
+            showModal('About Raj Mane', 'AI Engineer, Computer Vision specialist. Tech Head at AXIOS, Intern @ Dilatio.', 'https://linkedin.com/in/raj-mane-268a95371');
+        } else if (lower === 'projects') {
+            addTerminalLine('> Opening Projects modal...');
+            let projList = 'Featured projects:\n  - AIR_PAINT_BASE\n  - SUPPLY_CHAIN_MANAGEMENT_JAVA\n  - ImprovYu\n  - Car_Game_C\n  - FACE.RECOGNITION\nView details by clicking cards.';
+            addTerminalLine('> ' + projList);
+        } else if (lower === 'contact') {
+            addTerminalLine('> Opening Contact modal...');
+            showModal('Contact', 'Email: mmane9313@gmail.com\nGitHub: RAJ-MANE\nLinkedIn: /raj-mane-268a95371', 'mailto:rmane9313@gmail.com');
+        } else if (lower === 'github') {
+            addTerminalLine('> Opening GitHub profile...');
+            window.open('https://github.com/RAJ-MANE', '_blank');
+        } else if (lower === 'clear') {
+            terminalOutput.innerHTML = '';
+        } else if (lower !== '') {
+            addTerminalLine(`> Command not recognized: ${cmd}`);
         }
-        lampMode = (lampMode + 1) % 2;
-        document.body.classList.remove('light', 'night-vision');
-        if (lampMode === 1) {
-            document.body.classList.add('light');
-            lamp.innerHTML = '<span>☀️</span>';
-        } else {
-            lamp.innerHTML = '<span>💡</span>';
+    }
+
+    let cmdHistory = [];
+    let historyIndex = -1;
+
+    terminalInput.addEventListener('keydown', (e) => {
+        if (e.key === 'Enter') {
+            const cmd = terminalInput.value;
+            addTerminalLine(`$ ${cmd}`);
+            processCommand(cmd);
+            if (cmd.trim()) {
+                cmdHistory.push(cmd);
+                historyIndex = cmdHistory.length;
+            }
+            terminalInput.value = '';
+        } else if (e.key === 'ArrowUp') {
+            if (historyIndex > 0) {
+                historyIndex--;
+                terminalInput.value = cmdHistory[historyIndex];
+            }
+            e.preventDefault();
+        } else if (e.key === 'ArrowDown') {
+            if (historyIndex < cmdHistory.length - 1) {
+                historyIndex++;
+                terminalInput.value = cmdHistory[historyIndex];
+            } else {
+                historyIndex = cmdHistory.length;
+                terminalInput.value = '';
+            }
+            e.preventDefault();
+        } else if (e.key === 'Tab') {
+            e.preventDefault();
+            const partial = terminalInput.value.toLowerCase();
+            const commands = ['about', 'projects', 'contact', 'github', 'clear', 'help'];
+            const match = commands.find(cmd => cmd.startsWith(partial));
+            if (match) {
+                terminalInput.value = match;
+            }
         }
     });
 
-    // ========== TORCH BUTTON (hack tech mode) ==========
-    const torch = document.getElementById('torch-toggle');
-    torch.addEventListener('click', () => {
-        if (document.body.classList.contains('hack-tech')) {
-            document.body.classList.remove('hack-tech');
-            torch.innerHTML = '<span>🔥</span>';
-            // revert to lamp mode? We'll keep whatever lamp mode was last.
-        } else {
-            document.body.classList.add('hack-tech');
-            torch.innerHTML = '<span>⚡</span>';
-            // optionally turn off other modes
-            document.body.classList.remove('light', 'night-vision');
-        }
+    closeTerminal.addEventListener('click', () => {
+        terminalOverlay.classList.remove('show');
+        document.body.classList.remove('modal-open');
     });
 
-    // ========== TYPEWRITER (but text already present, we animate width) ==========
-    // The typing element already contains the full text; we just let CSS animation reveal it.
-    // No need for JS typewriter.
+    // Fetch GitHub repos for drawer
+    async function fetchGitHubProjects() {
+        try {
+            const res = await fetch('https://api.github.com/users/RAJ-MANE/repos');
+            const repos = await res.json();
+            let list = '<ul style="list-style:none; padding:0;">';
+            repos.slice(0, 5).forEach(repo => {
+                list += `<li style="margin:10px 0;">🔹 <a href="${repo.html_url}" target="_blank" style="color:var(--primary);">${repo.name}</a> - ${repo.description || 'no description'}</li>`;
+            });
+            list += '</ul>';
+            return list;
+        } catch (e) {
+            return '<p>Failed to load repos. Check console.</p>';
+        }
+    }
 
-    // ========== THREE.JS: MONITOR with "CONFIDENTIAL" glitch screen ==========
+    // Webcam
+    const webcamFeed = document.getElementById('webcam-feed');
+    const webcamVideo = document.getElementById('webcam-video');
+    async function startWebcam() {
+        try {
+            const stream = await navigator.mediaDevices.getUserMedia({ video: true });
+            webcamVideo.srcObject = stream;
+            webcamFeed.style.display = 'block';
+        } catch (err) {
+            alert('Webcam access denied or not available.');
+        }
+    }
+// ========== DYNAMIC TYPING ANIMATION ==========
+const typingElement = document.getElementById('typing');
+const roles = [
+    "Computer Engineer",
+    "AI Developer",
+    "Computer Vision Enthusiast",
+    "Full Stack Developer",
+    "Intern @ Dilatio"
+];
+let roleIndex = 0;
+let charIndex = 0;
+let isDeleting = false;
+let typingSpeed = 100; // ms per character
+let pauseTime = 1200;  // pause when full text is shown
+
+function typeEffect() {
+    const currentRole = roles[roleIndex];
+    
+    if (isDeleting) {
+        // remove one character
+        typingElement.textContent = currentRole.substring(0, charIndex - 1);
+        charIndex--;
+    } else {
+        // add one character
+        typingElement.textContent = currentRole.substring(0, charIndex + 1);
+        charIndex++;
+    }
+
+    // decide next action
+    if (!isDeleting && charIndex === currentRole.length) {
+        // finished typing – pause then delete
+        isDeleting = true;
+        setTimeout(typeEffect, pauseTime);
+        return;
+    } else if (isDeleting && charIndex === 0) {
+        // finished deleting – move to next role
+        isDeleting = false;
+        roleIndex = (roleIndex + 1) % roles.length;
+        setTimeout(typeEffect, 200);
+        return;
+    }
+
+    // continue typing/deleting at normal speed
+    setTimeout(typeEffect, typingSpeed);
+}
+
+// start the animation after a short delay
+setTimeout(typeEffect, 500);
+
+    // ========== THREE.JS SETUP ==========
+    const container = document.getElementById('three-container');
     const scene = new THREE.Scene();
     scene.background = null;
-    const camera = new THREE.PerspectiveCamera(45, document.getElementById('three-container').clientWidth / document.getElementById('three-container').clientHeight, 0.1, 1000);
+    const camera = new THREE.PerspectiveCamera(45, container.clientWidth / container.clientHeight, 0.1, 1000);
+    camera.position.set(3, 2.5, 9);
+    camera.lookAt(0, 1.5, -0.5);
+
     const renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true });
-    const container = document.getElementById('three-container');
     renderer.setSize(container.clientWidth, container.clientHeight);
     renderer.setPixelRatio(window.devicePixelRatio);
+    renderer.shadowMap.enabled = true;
+    renderer.shadowMap.type = THREE.PCFSoftShadowMap;
     container.appendChild(renderer.domElement);
-    renderer.domElement.style.cursor = 'none';
+
+    const isMobile = /Android|iPhone|iPad|iPod/i.test(navigator.userAgent);
+    if (isMobile) {
+        renderer.setPixelRatio(1);
+        camera.position.set(4.5, 3, 12);
+        // Disable bloom if exists
+        if (composer && bloomPass) bloomPass.enabled = false;
+    }
 
     // Lights
-    const ambient = new THREE.AmbientLight(0x404060);
+    const ambient = new THREE.AmbientLight(0x404060, 0.5);
     scene.add(ambient);
-    const dirLight = new THREE.DirectionalLight(0xffffff, 1);
-    dirLight.position.set(2, 5, 5);
+    const dirLight = new THREE.DirectionalLight(0xfff5e6, 1.2);
+    dirLight.position.set(4, 6, 4);
+    dirLight.castShadow = true;
+    dirLight.shadow.mapSize.width = 1024;
+    dirLight.shadow.mapSize.height = 1024;
+    dirLight.shadow.bias = -0.0005;
     scene.add(dirLight);
-    const fillLight = new THREE.PointLight(0x00ffaa, 0.5);
-    fillLight.position.set(-2, 1, 3);
+    const fillLight = new THREE.PointLight(0x446688, 0.5);
+    fillLight.position.set(-2, 3, 4);
     scene.add(fillLight);
+    
+    const lampLight = new THREE.PointLight(0xffaa33, 1.5, 8);
+    lampLight.position.set(-2.2, 2.8, 1.5);
+    lampLight.castShadow = true;
+    scene.add(lampLight);
+    const lampGlow = new THREE.Mesh(new THREE.SphereGeometry(0.12, 8), new THREE.MeshBasicMaterial({ color: 0xffaa33 }));
+    lampGlow.position.copy(lampLight.position);
+    scene.add(lampGlow);
 
-    // Monitor group (static)
+    // Ground
+    const groundMat = new THREE.MeshStandardMaterial({ color: 0x1a1a2a, roughness: 0.8, metalness: 0.1 });
+    const ground = new THREE.Mesh(new THREE.PlaneGeometry(10, 8), groundMat);
+    ground.rotation.x = -Math.PI / 2;
+    ground.position.y = -0.6;
+    ground.receiveShadow = true;
+    scene.add(ground);
+
+    // Back wall easter egg (now used for softboard back)
+    const backCanvas = document.createElement('canvas');
+    backCanvas.width = 512; backCanvas.height = 256;
+    const backCtx = backCanvas.getContext('2d');
+    backCtx.fillStyle = '#000000';
+    backCtx.fillRect(0,0,512,256);
+    backCtx.font = 'bold 48px Arial';
+    backCtx.fillStyle = '#ff0000';
+    backCtx.fillText('Nothing to see here', 10, 100);
+    backCtx.fillText('Developer secrets on the other side.', 10, 150);
+    const backTex = new THREE.CanvasTexture(backCanvas);
+    // Flip horizontally if needed to avoid mirrored text
+    backTex.wrapS = THREE.RepeatWrapping;
+    backTex.repeat.x = -1;
+    // Add subtle emissive glow
+    const backBoardMat = new THREE.MeshStandardMaterial({ map: backTex, emissive: 0xff2222, emissiveIntensity: 0.25 });
+
+    // ===== DESK GROUP =====
+    const deskGroup = new THREE.Group();
+    scene.add(deskGroup);
+
+    // Desk top
+    const deskMat = new THREE.MeshStandardMaterial({ color: 0x3a4a5a, roughness: 0.4, metalness: 0.1 });
+    const deskTop = new THREE.Mesh(new THREE.BoxGeometry(5.0, 0.2, 3.0), deskMat);
+    deskTop.position.y = 0.1;
+    deskTop.castShadow = true; deskTop.receiveShadow = true;
+    deskGroup.add(deskTop);
+
+    // Legs
+    const legMat = new THREE.MeshStandardMaterial({ color: 0x222233 });
+    const legPositions = [
+        [-2.3, -0.5, -1.3], [2.3, -0.5, -1.3],
+        [-2.3, -0.5, 1.3], [2.3, -0.5, 1.3]
+    ];
+    legPositions.forEach(pos => {
+        const leg = new THREE.Mesh(new THREE.CylinderGeometry(0.2, 0.25, 1.2), legMat);
+        leg.position.set(pos[0], -0.5, pos[2]);
+        leg.castShadow = true; leg.receiveShadow = true;
+        deskGroup.add(leg);
+    });
+
+    // ----- MONITOR (elevated, with interactive UI) -----
     const monitorGroup = new THREE.Group();
-
-    // Screen (main display) - dark
+    monitorGroup.position.set(0, 1.65, -0.8);
+    monitorGroup.scale.set(0.9, 0.9, 0.9);
+    // screen back
     const screenGeom = new THREE.BoxGeometry(2.2, 1.5, 0.1);
     const screenMat = new THREE.MeshStandardMaterial({ color: 0x111122, emissive: 0x002233 });
     const screen = new THREE.Mesh(screenGeom, screenMat);
-    screen.position.z = 0.05;
+    screen.position.z = 0.05; screen.castShadow = true;
     monitorGroup.add(screen);
-
-    // Create canvas texture with glitchy "CONFIDENTIAL"
-    const canvas = document.createElement('canvas');
-    canvas.width = 512;
-    canvas.height = 512;
+    // display with canvas texture showing interactive UI
+    const canvas = document.createElement('canvas'); canvas.width = 512; canvas.height = 512;
     const ctx = canvas.getContext('2d');
-    function drawGlitchScreen() {
-        ctx.clearRect(0, 0, 512, 512);
-        ctx.fillStyle = '#0a0a0a';
-        ctx.fillRect(0, 0, 512, 512);
-        ctx.font = 'bold 48px "Fira Code"';
-        ctx.fillStyle = '#00ffaa';
-        ctx.fillText('CONFIDENTIAL', 60, 250);
-        ctx.font = '24px "Fira Code"';
-        ctx.fillStyle = '#ff00c1';
-        ctx.fillText('> DO NOT OPEN', 120, 350);
-        // glitch lines
-        for (let i=0; i<5; i++) {
-            let y = 200 + Math.random()*200;
-            ctx.fillStyle = '#ffffff';
-            ctx.fillRect(40, y, 400, 2);
+    // UI state
+    let monitorState = 'boot'; // 'boot', 'menu'
+    let bootStep = 0;
+    let bootLines = [
+        'Initializing system...',
+        'Loading modules...',
+        'Access granted.'
+    ];
+    let bootInterval = null;
+    let lastMenuDraw = 0;
+    let cursorVisible = true;
+    let flickerAlpha = 0.08;
+    let flickerDir = 1;
+    // Menu section positions (y ranges)
+    const menuSections = [
+        { label: 'ABOUT', y: [120, 190] },
+        { label: 'PROJECTS', y: [210, 280] },
+        { label: 'CONTACT', y: [300, 370] }
+    ];
+    // Draw scanlines
+    function drawScanlines() {
+        for (let i = 0; i < 512; i += 4) {
+            ctx.fillStyle = 'rgba(0,255,0,0.07)';
+            ctx.fillRect(0, i, 512, 2);
         }
     }
-    drawGlitchScreen();
-    // animate glitch every 300ms
-    setInterval(() => {
-        drawGlitchScreen();
+    // Draw flicker overlay
+    function drawFlicker() {
+        ctx.fillStyle = `rgba(0,255,0,${flickerAlpha.toFixed(2)})`;
+        ctx.fillRect(0, 0, 512, 512);
+    }
+    // Draw boot sequence
+    function drawBoot() {
+        ctx.clearRect(0,0,512,512);
+        ctx.fillStyle = '#0a0a0a';
+        ctx.fillRect(0,0,512,512);
+        ctx.font = 'bold 32px "Fira Code", monospace';
+        ctx.fillStyle = '#00ffaa';
+        ctx.fillText('RajOS v1.0', 24, 60);
+        ctx.font = '20px "Fira Code", monospace';
+        for (let i = 0; i <= bootStep; i++) {
+            ctx.fillText(bootLines[i], 32, 120 + i*40);
+        }
+        drawScanlines();
+        drawFlicker();
         texture.needsUpdate = true;
-    }, 300);
-
+    }
+    // Draw menu UI
+    function drawMenu(force) {
+        // Only redraw if enough time has passed or forced
+        const now = Date.now();
+        if (!force && now - lastMenuDraw < 120) return;
+        lastMenuDraw = now;
+        ctx.clearRect(0,0,512,512);
+        ctx.fillStyle = '#0a0a0a';
+        ctx.fillRect(0,0,512,512);
+        // Top bar
+        ctx.fillStyle = '#222';
+        ctx.fillRect(0,0,512,48);
+        ctx.font = 'bold 26px "Fira Code", monospace';
+        ctx.fillStyle = '#00ffaa';
+        ctx.fillText('RajOS v1.0', 24, 34);
+        // Menu sections
+        ctx.font = 'bold 38px "Fira Code", monospace';
+        menuSections.forEach((section, idx) => {
+            ctx.save();
+            ctx.strokeStyle = '#00ffaa';
+            ctx.lineWidth = 3;
+            ctx.beginPath();
+            ctx.roundRect(60, section.y[0], 392, section.y[1]-section.y[0], 18);
+            ctx.stroke();
+            ctx.fillStyle = '#111';
+            ctx.fillRect(60, section.y[0], 392, section.y[1]-section.y[0]);
+            ctx.fillStyle = '#00ffaa';
+            ctx.textAlign = 'center';
+            ctx.textBaseline = 'middle';
+            ctx.fillText(`[ ${section.label} ]`, 256, (section.y[0]+section.y[1])/2);
+            ctx.restore();
+        });
+        // Blinking cursor (bottom right)
+        if (cursorVisible) {
+            ctx.fillStyle = '#00ffaa';
+            ctx.fillRect(480, 490, 18, 18);
+        }
+        drawScanlines();
+        drawFlicker();
+        texture.needsUpdate = true;
+    }
+    // Flicker animation
+    function updateFlicker() {
+        flickerAlpha += flickerDir * 0.01 * (Math.random()+0.5);
+        if (flickerAlpha > 0.13) { flickerAlpha = 0.13; flickerDir = -1; }
+        if (flickerAlpha < 0.04) { flickerAlpha = 0.04; flickerDir = 1; }
+    }
+    // Boot sequence logic
+    function startBootSequence() {
+        monitorState = 'boot';
+        bootStep = 0;
+        drawBoot();
+        bootInterval = setInterval(() => {
+            bootStep++;
+            if (bootStep >= bootLines.length) {
+                clearInterval(bootInterval);
+                setTimeout(() => {
+                    monitorState = 'menu';
+                    drawMenu(true);
+                }, 700);
+            } else {
+                drawBoot();
+            }
+        }, 900);
+    }
+    // Cursor blink
+    setInterval(() => {
+        cursorVisible = !cursorVisible;
+        if (monitorState === 'menu') drawMenu(true);
+    }, 500);
+    // Flicker update
+    setInterval(() => {
+        updateFlicker();
+        if (monitorState === 'menu') drawMenu();
+        else if (monitorState === 'boot') drawBoot();
+    }, 120);
+    // Initial boot
     const texture = new THREE.CanvasTexture(canvas);
+    startBootSequence();
+    // Display mesh
     const displayGeom = new THREE.BoxGeometry(2.0, 1.3, 0.02);
     const displayMat = new THREE.MeshStandardMaterial({ map: texture, emissive: 0x115555, emissiveIntensity: 0.6 });
     const display = new THREE.Mesh(displayGeom, displayMat);
-    display.position.z = 0.12;
+    display.position.z = 0.12; display.castShadow = true;
     monitorGroup.add(display);
-
-    // Bezel
+    // bezel
     const bezelGeom = new THREE.BoxGeometry(2.35, 1.65, 0.08);
     const bezelMat = new THREE.MeshStandardMaterial({ color: 0x222233, emissive: 0x112233 });
     const bezel = new THREE.Mesh(bezelGeom, bezelMat);
-    bezel.position.z = 0;
+    bezel.position.z = 0; bezel.castShadow = true;
     monitorGroup.add(bezel);
-
-    // Stand neck
-    const neckGeom = new THREE.CylinderGeometry(0.15, 0.25, 0.5);
+    // stand
+    const neckGeom = new THREE.CylinderGeometry(0.2, 0.3, 0.6);
     const neckMat = new THREE.MeshStandardMaterial({ color: 0x445566 });
     const neck = new THREE.Mesh(neckGeom, neckMat);
-    neck.position.set(0, -1.1, 0);
+    neck.position.set(0, -1.1, 0); neck.castShadow = true;
     monitorGroup.add(neck);
-
-    // Base
-    const baseGeom = new THREE.BoxGeometry(1.2, 0.1, 0.8);
+    const baseGeom = new THREE.BoxGeometry(1.4, 0.15, 1.0);
     const baseMat = new THREE.MeshStandardMaterial({ color: 0x556677 });
     const base = new THREE.Mesh(baseGeom, baseMat);
-    base.position.set(0, -1.4, 0);
+    base.position.set(0, -1.45, 0); base.castShadow = true;
     monitorGroup.add(base);
+    deskGroup.add(monitorGroup);
+// ========== HOVER ANIMATION FOR 3D OBJECTS ==========
+let currentHover = null;
+const hoverScale = 1.05;
+const emissiveFactor = 2.0;
 
-    monitorGroup.rotation.y = -0.2; // slight angle, static
-    monitorGroup.position.y = 0.2;
-    scene.add(monitorGroup);
+function getInteractiveGroup(mesh) {
+    for (let item of interactiveObjects) {
+        const group = item.obj;
+        if (group === mesh || group.children.includes(mesh)) {
+            return group;
+        }
+    }
+    return null;
+}
 
-    camera.position.set(0, 0.5, 5);
-    camera.lookAt(0, 0.2, 0);
+function ensureOriginalEmissives(group) {
+    if (group.userData.originalEmissives) return;
+    const originals = [];
+    group.traverse(child => {
+        if (child.isMesh && child.material) {
+            const materials = Array.isArray(child.material) ? child.material : [child.material];
+            materials.forEach(mat => {
+                if (mat.emissive) {
+                    originals.push({
+                        material: mat,
+                        color: mat.emissive.clone()
+                    });
+                }
+            });
+        }
+    });
+    group.userData.originalEmissives = originals;
+}
+
+function resetHover(group) {
+    if (!group) return;
+    gsap.killTweensOf(group.scale);
+    gsap.killTweensOf(group.userData, 'emissiveFactor');
+    gsap.to(group.scale, { x: 1, y: 1, z: 1, duration: 0.3, ease: "power2.out" });
+    if (group.userData.originalEmissives && group.userData.originalEmissives.length > 0) {
+        const originals = group.userData.originalEmissives;
+        gsap.to(group.userData, {
+            emissiveFactor: 1,
+            duration: 0.3,
+            ease: "power2.out",
+            onUpdate: function() {
+                const factor = group.userData.emissiveFactor || 1;
+                originals.forEach(item => {
+                    item.material.emissive.copy(item.color).multiplyScalar(factor);
+                });
+            }
+        });
+    }
+}
+
+function applyHover(group) {
+    if (!group) return;
+    ensureOriginalEmissives(group);
+    gsap.killTweensOf(group.scale);
+    gsap.killTweensOf(group.userData, 'emissiveFactor');
+    gsap.to(group.scale, { x: hoverScale, y: hoverScale, z: hoverScale, duration: 0.3, ease: "power2.out" });
+    if (group.userData.originalEmissives && group.userData.originalEmissives.length > 0) {
+        group.userData.emissiveFactor = 1;
+        gsap.to(group.userData, {
+            emissiveFactor: emissiveFactor,
+            duration: 0.3,
+            ease: "power2.out",
+            onUpdate: function() {
+                const factor = group.userData.emissiveFactor;
+                group.userData.originalEmissives.forEach(item => {
+                    item.material.emissive.copy(item.color).multiplyScalar(factor);
+                });
+            }
+        });
+    }
+}
+
+renderer.domElement.addEventListener('mousemove', (e) => {
+    if (document.body.classList.contains('modal-open')) return;
+    const rect = renderer.domElement.getBoundingClientRect();
+    const mouse = new THREE.Vector2();
+    mouse.x = ((e.clientX - rect.left) / rect.width) * 2 - 1;
+    mouse.y = -((e.clientY - rect.top) / rect.height) * 2 + 1;
+    raycaster.setFromCamera(mouse, camera);
+    const intersects = raycaster.intersectObjects(scene.children, true);
+
+    let hoverGroup = null;
+    for (let intersect of intersects) {
+        const group = getInteractiveGroup(intersect.object);
+        if (group) {
+            hoverGroup = group;
+            break;
+        }
+    }
+
+    if (hoverGroup !== currentHover) {
+        if (currentHover) resetHover(currentHover);
+        if (hoverGroup) applyHover(hoverGroup);
+        currentHover = hoverGroup;
+    }
+});
+    // --- Monitor display click interaction ---
+    renderer.domElement.addEventListener('click', (event) => {
+        // Only if menu is active
+        if (monitorState !== 'menu') return;
+        // Raycast to monitor display
+        const rect = renderer.domElement.getBoundingClientRect();
+        const mouse = new THREE.Vector2();
+        mouse.x = ((event.clientX - rect.left) / rect.width) * 2 - 1;
+        mouse.y = -((event.clientY - rect.top) / rect.height) * 2 + 1;
+        raycaster.setFromCamera(mouse, camera);
+        const intersects = raycaster.intersectObject(display, false);
+        if (intersects.length > 0) {
+            // Get click position in canvas coordinates
+            const uv = intersects[0].uv;
+            const y = uv.y * 512;
+            // Determine which section was clicked
+            if (y >= menuSections[0].y[0] && y <= menuSections[0].y[1]) {
+                document.getElementById('about').scrollIntoView({ behavior: 'smooth' });
+            } else if (y >= menuSections[1].y[0] && y <= menuSections[1].y[1]) {
+                document.getElementById('projects').scrollIntoView({ behavior: 'smooth' });
+            } else if (y >= menuSections[2].y[0] && y <= menuSections[2].y[1]) {
+                document.getElementById('contact').scrollIntoView({ behavior: 'smooth' });
+            }
+        }
+    });
+
+    // ----- WEBCAM ON MONITOR -----
+    const webcamMeshGroup = new THREE.Group();
+    const camBase = new THREE.Mesh(new THREE.BoxGeometry(0.35, 0.12, 0.25), new THREE.MeshStandardMaterial({ color: 0x333333 }));
+    camBase.position.set(0, 0.85, 0.95);
+    webcamMeshGroup.add(camBase);
+    const camLens = new THREE.Mesh(new THREE.SphereGeometry(0.1, 8), new THREE.MeshStandardMaterial({ color: 0x000000, emissive: 0x222222 }));
+    camLens.position.set(0, 0.85, 1.05);
+    webcamMeshGroup.add(camLens);
+    monitorGroup.add(webcamMeshGroup);
+
+    // ----- LAMP -----
+    const lampGroup = new THREE.Group();
+    lampGroup.position.set(-2.0, 0.2, 0.6);
+    lampGroup.scale.set(1.0, 1.0, 1.0);
+    const lampBase = new THREE.Mesh(new THREE.CylinderGeometry(0.4, 0.5, 0.2), new THREE.MeshStandardMaterial({ color: 0x888888 }));
+    lampBase.position.y = 0; lampBase.castShadow = true; lampBase.receiveShadow = true;
+    lampGroup.add(lampBase);
+    const stem = new THREE.Mesh(new THREE.CylinderGeometry(0.1, 0.1, 1.4), new THREE.MeshStandardMaterial({ color: 0xaaaaaa }));
+    stem.position.y = 0.7; stem.castShadow = true;
+    lampGroup.add(stem);
+    const shadeGeom = new THREE.ConeGeometry(0.6, 0.5, 12);
+    const shadeMat = new THREE.MeshStandardMaterial({ color: 0xcccccc, emissive: 0x222222 });
+    const shade = new THREE.Mesh(shadeGeom, shadeMat);
+    shade.position.y = 1.5; shade.rotation.x = Math.PI; shade.castShadow = true;
+    lampGroup.add(shade);
+    const bulbGeom = new THREE.SphereGeometry(0.25, 12);
+    const bulbMat = new THREE.MeshStandardMaterial({ color: 0xffdd99, emissive: 0x442200 });
+    const bulb = new THREE.Mesh(bulbGeom, bulbMat);
+    bulb.position.y = 1.2; bulb.castShadow = true;
+    lampGroup.add(bulb);
+    deskGroup.add(lampGroup);
+
+    // ----- DRAWER -----
+    const drawerGroup = new THREE.Group();
+    drawerGroup.position.set(1.8, -0.3, 0.8);
+    const drawerBox = new THREE.Mesh(new THREE.BoxGeometry(1.0, 0.5, 0.8), new THREE.MeshStandardMaterial({ color: 0x5a4a3a }));
+    drawerBox.castShadow = true; drawerBox.receiveShadow = true;
+    drawerGroup.add(drawerBox);
+    const handle = new THREE.Mesh(new THREE.CylinderGeometry(0.06, 0.06, 0.3), new THREE.MeshStandardMaterial({ color: 0xffaa00 }));
+    handle.rotation.z = Math.PI/2; handle.position.set(0.5, 0, 0.4); handle.castShadow = true;
+    drawerGroup.add(handle);
+    deskGroup.add(drawerGroup);
+
+    // ----- SOFT BOARD (with hidden back message) -----
+    const boardMat = new THREE.MeshStandardMaterial({ color: 0x2a3a4a, emissive: 0x102030 });
+    // Multi-material: [right, left, top, bottom, front, back]
+    const boardMaterials = [
+        boardMat, // right
+        boardMat, // left
+        boardMat, // top
+        boardMat, // bottom
+        boardMat, // front
+        backBoardMat // back (hidden message)
+    ];
+    const board = new THREE.Mesh(new THREE.BoxGeometry(4.5, 2.5, 0.1), boardMaterials);
+    board.position.set(0, 1.4, -2.2);
+    board.castShadow = true; board.receiveShadow = true;
+    deskGroup.add(board);
+
+    // Sticky Notes
+    function createStickyNote(color, text, xPos) {
+        const group = new THREE.Group();
+        const noteMat = new THREE.MeshStandardMaterial({ color: color, emissive: 0x111111 });
+        const note = new THREE.Mesh(new THREE.BoxGeometry(0.7, 0.6, 0.03), noteMat);
+        note.position.z = 0.03;
+        note.castShadow = true; note.receiveShadow = true;
+        group.add(note);
+        const canvas = document.createElement('canvas'); canvas.width = 128; canvas.height = 64;
+        const ctx = canvas.getContext('2d'); ctx.fillStyle = color; ctx.fillRect(0,0,128,64);
+        ctx.font = 'bold 24px "Fira Code"'; ctx.fillStyle = '#fff'; ctx.fillText(text, 10, 40);
+        const tex = new THREE.CanvasTexture(canvas);
+        const textPlane = new THREE.Mesh(new THREE.PlaneGeometry(0.6, 0.4), new THREE.MeshBasicMaterial({ map: tex, side: THREE.DoubleSide }));
+        textPlane.position.z = 0.06;
+        group.add(textPlane);
+        const curlGeo = new THREE.ConeGeometry(0.1, 0.02, 6);
+        const curlMat = new THREE.MeshStandardMaterial({ color: color, emissive: 0x222222 });
+        const curl = new THREE.Mesh(curlGeo, curlMat);
+        curl.position.set(0.3, -0.25, 0.07);
+        curl.rotation.z = 0.3; curl.rotation.x = 0.2;
+        group.add(curl);
+        group.position.set(xPos, 1.5, -2.15);
+        return group;
+    }
+    const greenNote = createStickyNote('#2a7a4a', 'BIO', -1.5);
+    const pinkNote = createStickyNote('#b24a6a', 'CONNECT', 1.5);
+    deskGroup.add(greenNote);
+    deskGroup.add(pinkNote);
+// ========== 3D TRAIN FOR DRAWER ==========
+const trainGroup = new THREE.Group();
+trainGroup.visible = false; // hidden until drawer opens
+trainGroup.position.set(-0.5, 0.15, 0.2); // sits near the drawer on the desk
+deskGroup.add(trainGroup); // attach to desk so it rotates/moves with desk
+
+// Create locomotive
+const locoMat = new THREE.MeshStandardMaterial({ color: 0xffaa00 });
+const locoBody = new THREE.Mesh(new THREE.BoxGeometry(0.6, 0.3, 0.3), locoMat);
+locoBody.position.set(0, 0.15, 0);
+locoBody.castShadow = true;
+locoBody.receiveShadow = true;
+trainGroup.add(locoBody);
+
+const chimney = new THREE.Mesh(new THREE.CylinderGeometry(0.1, 0.1, 0.15), new THREE.MeshStandardMaterial({ color: 0xcccccc }));
+chimney.position.set(0.2, 0.3, 0);
+chimney.castShadow = true;
+trainGroup.add(chimney);
+
+const roof = new THREE.Mesh(new THREE.BoxGeometry(0.4, 0.1, 0.25), new THREE.MeshStandardMaterial({ color: 0xaa3333 }));
+roof.position.set(0, 0.3, 0);
+roof.castShadow = true;
+trainGroup.add(roof);
+
+// Create coaches (4 coaches)
+const coachColors = [0x33aa33, 0x3366aa, 0xaa33aa, 0xaa6633];
+const achievements = [
+    "Grade 10: Built strong academic foundation.",
+    "Grade 12: Focused on PCM and problem solving.",
+    "JEE: Developed analytical thinking and consistency.",
+    "CET: Strengthened engineering entrance concepts."
+];
+for (let i = 0; i < 4; i++) {
+    const coachGroup = new THREE.Group();
+    coachGroup.position.set(0.8 + i * 0.7, 0, 0); // spaced out
+
+    const coachBase = new THREE.Mesh(new THREE.BoxGeometry(0.6, 0.25, 0.3), new THREE.MeshStandardMaterial({ color: coachColors[i] }));
+    coachBase.position.y = 0.15;
+    coachBase.castShadow = true;
+    coachBase.receiveShadow = true;
+    coachGroup.add(coachBase);
+
+    const coachRoof = new THREE.Mesh(new THREE.BoxGeometry(0.4, 0.1, 0.25), new THREE.MeshStandardMaterial({ color: 0x888888 }));
+    coachRoof.position.y = 0.3;
+    coachRoof.castShadow = true;
+    coachGroup.add(coachRoof);
+
+    // Store achievement index on the group
+    coachGroup.userData.achievementIndex = i;
+    coachGroup.userData.achievementText = achievements[i];
+
+    trainGroup.add(coachGroup);
+}
+
+// Add wheels
+function addWheels(parent, xOff, zOff) {
+    const wheelMat = new THREE.MeshStandardMaterial({ color: 0x333333 });
+    for (let side = -1; side <= 1; side += 2) {
+        const wheel = new THREE.Mesh(new THREE.CylinderGeometry(0.1, 0.1, 0.08, 16), wheelMat);
+        wheel.rotation.z = Math.PI/2;
+        wheel.position.set(xOff, 0.08, side * 0.18);
+        wheel.castShadow = true;
+        parent.add(wheel);
+    }
+}
+addWheels(locoBody, 0.2, 0);
+addWheels(locoBody, -0.2, 0);
+trainGroup.children.forEach(child => {
+    if (child.isMesh && child.material.color.getHex() !== 0x333333) {
+        // skip if it's a wheel (already added)
+    } else if (child.isGroup) {
+        addWheels(child, 0.2, 0);
+        addWheels(child, -0.2, 0);
+    }
+});
+
+// Animation variables
+let trainAnimProgress = 0;
+let trainAnimDirection = 1;
+let trainAnimActive = false;
+
+function animateTrain() {
+    if (!trainAnimActive) return;
+    trainAnimProgress += 0.005 * trainAnimDirection;
+    if (trainAnimProgress > 1) {
+        trainAnimProgress = 1;
+        trainAnimDirection = -1;
+    } else if (trainAnimProgress < 0) {
+        trainAnimProgress = 0;
+        trainAnimDirection = 1;
+    }
+    // Move train back and forth slightly
+    trainGroup.position.x = -0.5 + trainAnimProgress * 0.2;
+    requestAnimationFrame(animateTrain);
+}
+
+window.startTrainAnimation = function() {
+    trainGroup.visible = true;
+    if (!trainAnimActive) {
+        trainAnimActive = true;
+        animateTrain();
+    }
+};
+
+window.stopTrainAnimation = function() {
+    trainGroup.visible = false;
+    trainAnimActive = false;
+};
+
+// Add coaches to interactiveObjects so they can be clicked
+setTimeout(() => {
+    trainGroup.children.forEach(child => {
+        if (child.isGroup) { // each coach is a group
+            interactiveObjects.push({ obj: child, type: `coach-${child.userData.achievementIndex}` });
+        }
+    });
+}, 100); // slight delay to ensure interactiveObjects is defined
+    // ========== FLOATING ANIMATION (will be paused on user interaction) ==========
+    let floatingTween = gsap.to(deskGroup.rotation, { 
+        y: 0.02, 
+        duration: 3, 
+        repeat: -1, 
+        yoyo: true, 
+        ease: "sine.inOut",
+        paused: false
+    });
+
+    let rotationTimeout;
+    function stopFloatingTemporarily() {
+        floatingTween.pause();
+        if (rotationTimeout) clearTimeout(rotationTimeout);
+        rotationTimeout = setTimeout(() => {
+            floatingTween.resume();
+        }, 2000); // resume after 2 seconds of no rotation
+    }
+
+    // ========== MOUSE DRAG ROTATION ==========
+    let isDragging = false;
+    let lastMouseX = 0;
+    const rotationSpeed = 0.005;
+
+    renderer.domElement.addEventListener('mousedown', (e) => {
+        if (document.body.classList.contains('modal-open')) return;
+        isDragging = true;
+        lastMouseX = e.clientX;
+        stopFloatingTemporarily();
+    });
+
+    window.addEventListener('mousemove', (e) => {
+        if (!isDragging || document.body.classList.contains('modal-open')) return;
+        const deltaX = e.clientX - lastMouseX;
+        deskGroup.rotation.y += deltaX * rotationSpeed;
+        lastMouseX = e.clientX;
+    });
+
+    window.addEventListener('mouseup', () => {
+        isDragging = false;
+    });
+
+    // ========== KEYBOARD ROTATION ==========
+    window.addEventListener('keydown', (e) => {
+        if (document.body.classList.contains('modal-open')) return;
+        if (document.activeElement === terminalInput) return; // allow typing in terminal
+
+        if (e.key === 'ArrowLeft') {
+            deskGroup.rotation.y -= 0.1;
+            e.preventDefault();
+            stopFloatingTemporarily();
+        } else if (e.key === 'ArrowRight') {
+            deskGroup.rotation.y += 0.1;
+            e.preventDefault();
+            stopFloatingTemporarily();
+        }
+    });
+
+    // Rotate button (full spin)
+    rotateBtn.addEventListener('click', () => {
+        stopFloatingTemporarily();
+        gsap.to(deskGroup.rotation, { y: deskGroup.rotation.y + Math.PI*2, duration: 2, ease: "power2.out" });
+    });
+
+    // ESC to close overlays
+    window.addEventListener('keydown', (e) => {
+        if (e.key === 'Escape') {
+            terminalOverlay.classList.remove('show');
+            modal.classList.remove('show');
+            document.body.classList.remove('modal-open');
+        }
+    });
+
+    // ========== RAYCASTING ==========
+    const raycaster = new THREE.Raycaster();
+    const mouseVec = new THREE.Vector2();
+    const interactiveObjects = [
+        { obj: lampGroup, type: 'lamp' },
+        { obj: monitorGroup, type: 'monitor' },
+        { obj: drawerGroup, type: 'drawer' },
+        { obj: greenNote, type: 'noteBio' },
+        { obj: pinkNote, type: 'noteConnect' },
+        { obj: webcamMeshGroup, type: 'webcam' }
+    ];
+
+    let isDrawerOpen = false;
+
+    renderer.domElement.addEventListener('click', (event) => {
+        const rect = renderer.domElement.getBoundingClientRect();
+        mouseVec.x = ((event.clientX - rect.left) / rect.width) * 2 - 1;
+        mouseVec.y = -((event.clientY - rect.top) / rect.height) * 2 + 1;
+        raycaster.setFromCamera(mouseVec, camera);
+
+        let hit = null;
+        for (let item of interactiveObjects) {
+            const intersects = raycaster.intersectObjects(item.obj.children, true);
+            if (intersects.length > 0) { hit = item; break; }
+        }
+        if (!hit) return;
+
+        switch (hit.type) {
+            case 'lamp':
+                const isLight = document.body.classList.contains('light');
+                if (isLight) {
+                    document.body.classList.remove('light'); document.body.classList.add('dark');
+                    lampLight.color.setHex(0x335588); lampLight.intensity = 0.4;
+                    bulb.material.emissive.setHex(0x112233); lampGlow.material.color.setHex(0x335588);
+                } else {
+                    document.body.classList.remove('dark'); document.body.classList.add('light');
+                    lampLight.color.setHex(0xffaa33); lampLight.intensity = 1.8;
+                    bulb.material.emissive.setHex(0x442200); lampGlow.material.color.setHex(0xffaa33);
+                }
+                break;
+            case 'monitor':
+                terminalOverlay.classList.add('show');
+                document.body.classList.add('modal-open');
+                terminalInput.focus();
+                break;
+            case 'drawer':
+    if (!isDrawerOpen) {
+        gsap.to(drawerGroup.position, { z: 1.4, duration: 0.5, ease: "backOut" });
+
+        // Show 3D train
+        if (typeof startTrainAnimation === "function") {
+            startTrainAnimation();
+        }
+
+        isDrawerOpen = true;
+    } else {
+        gsap.to(drawerGroup.position, { z: 0.8, duration: 0.5, ease: "backOut" });
+
+        // Hide 3D train
+        if (typeof stopTrainAnimation === "function") {
+            stopTrainAnimation();
+        }
+
+        isDrawerOpen = false;
+    }
+    break;
+            case 'noteBio':
+                gsap.to(camera.position, { x: -1.2, y: 1.8, z: 2.5, duration: 1, onUpdate: () => camera.lookAt(-1.2, 1.4, -2.0) });
+                document.getElementById('reset-camera').style.display = 'flex';
+                setTimeout(() => showModal('About Raj Mane', 'AI Engineer, Computer Vision specialist. Tech Head at AXIOS, Intern @ Dilatio.', 'https://linkedin.com/in/raj-mane-268a95371'), 600);
+                break;
+            case 'noteConnect':
+                gsap.to(camera.position, { x: 1.2, y: 1.8, z: 2.5, duration: 1, onUpdate: () => camera.lookAt(1.2, 1.4, -2.0) });
+                document.getElementById('reset-camera').style.display = 'flex';
+                setTimeout(() => showModal('Contact', 'Email: rmane9313@gmail.com\nGitHub: RAJ-MANE\nLinkedIn: /raj-mane-268a95371', 'mailto:rmane9313@gmail.com'), 600);
+                break;
+            case 'webcam':
+                startWebcam();
+                break;
+        }        // Check if clicked object is a train coach
+        if (hit.type && hit.type.startsWith('coach-')) {
+            const index = parseInt(hit.type.split('-')[1]);
+            const achievements = [
+                "Grade 10: Built strong academic foundation.",
+                "Grade 12: Focused on PCM and problem solving.",
+                "JEE: Developed analytical thinking and consistency.",
+                "CET: Strengthened engineering entrance concepts.",
+                "Engineering: Exploring AI, Web Dev, and systems.",
+                "Hackathons: Built real-world innovative projects."
+            ];
+            showModal("My Journey", achievements[index] || "Achievement milestone", "#");
+        }
+        if (!hit) {
+            gsap.to(camera.position, { x: 3, y: 2.5, z: 9, duration: 1, onUpdate: () => camera.lookAt(0, 1.5, -0.5) });
+            document.getElementById('reset-camera').style.display = 'none';
+        }
+    });
+
+    const resetBtn = document.getElementById('reset-camera');
+    resetBtn.addEventListener('click', () => {
+        gsap.to(camera.position, { x: 3, y: 2.5, z: 9, duration: 1, onUpdate: () => camera.lookAt(0, 1.5, -0.5) });
+        resetBtn.style.display = 'none';
+    });
 
     // ========== ABOUT 3D KNOT ==========
     const scene2 = new THREE.Scene();
@@ -733,8 +1221,6 @@
     const aboutContainer = document.getElementById('about-3d');
     renderer2.setSize(400, 400);
     aboutContainer.appendChild(renderer2.domElement);
-    renderer2.domElement.style.cursor = 'none';
-
     const knotGeo = new THREE.TorusKnotGeometry(10, 3, 120, 16);
     const knotMat = new THREE.MeshPhongMaterial({ color: 0x00ffaa, emissive: 0x004444, wireframe: true });
     const knot = new THREE.Mesh(knotGeo, knotMat);
@@ -744,102 +1230,40 @@
     light2.position.set(3, 4, 5);
     scene2.add(light2);
     camera2.position.z = 5;
+    renderer2.domElement.addEventListener('click', () => showModal('RAJ MANE', 'Technical Head (Axios E-Cell)| Intern', '#'));
 
-    // ========== RAYCASTING: monitor click -> GitHub, knot -> modal ==========
-    const raycaster = new THREE.Raycaster();
-    const mouse = new THREE.Vector2();
+    let renderActive = false;
+    const renderObserver = new IntersectionObserver((entries) => {
+        renderActive = entries[0].isIntersecting;
+    }, { threshold: 0.1 });
+    renderObserver.observe(container);
 
-    // Monitor click -> open GitHub (main profile)
-    renderer.domElement.addEventListener('click', (event) => {
-        const rect = renderer.domElement.getBoundingClientRect();
-        mouse.x = ((event.clientX - rect.left) / rect.width) * 2 - 1;
-        mouse.y = -((event.clientY - rect.top) / rect.height) * 2 + 1;
-        raycaster.setFromCamera(mouse, camera);
-        const intersects = raycaster.intersectObjects(monitorGroup.children, true);
-        if (intersects.length > 0) {
-            window.open('https://github.com/RAJ-MANE', '_blank');
-        }
-    });
-
-    // Knot click -> modal for AuraHire (or any project)
-    renderer2.domElement.addEventListener('click', (event) => {
-        const rect = renderer2.domElement.getBoundingClientRect();
-        mouse.x = ((event.clientX - rect.left) / rect.width) * 2 - 1;
-        mouse.y = -((event.clientY - rect.top) / rect.height) * 2 + 1;
-        raycaster.setFromCamera(mouse, camera2);
-        const intersects = raycaster.intersectObject(knot);
-        if (intersects.length > 0) {
-            showModal('AuraHire (AI Interview)', 'AI mock interview platform with real-time facial expression analysis, 3D avatar, and NLP feedback. Built with React, TensorFlow, and Three.js.', 'https://github.com/RAJ-MANE/aurahire');
-        }
-    });
-
-    // ========== PROJECT CARDS CLICK ==========
-    const cards = document.querySelectorAll('.card');
-    cards.forEach(card => {
-        card.addEventListener('click', function(e) {
-            const repo = this.dataset.repo;
-            const title = this.dataset.title;
-            const desc = this.dataset.desc;
-            showModal(title, desc, repo);
-        });
-    });
-
-    // ========== MODAL FUNCTION ==========
-    const modal = document.getElementById('projectModal');
-    const modalTitle = document.getElementById('modalTitle');
-    const modalBody = document.getElementById('modalBody');
-    const modalLink = document.getElementById('modalLink');
-    const modalClose = document.querySelector('.modal-close');
-
-    window.showModal = function(title, desc, link) {
-        modalTitle.innerText = title;
-        modalBody.innerHTML = `<p>${desc}</p>`;
-        modalLink.href = link;
-        modal.classList.add('show');
-    };
-
-    modalClose.addEventListener('click', () => modal.classList.remove('show'));
-    window.addEventListener('click', (e) => { if (e.target === modal) modal.classList.remove('show'); });
-
-    // ========== ANIMATION LOOP (static monitor, knot rotates) ==========
     function animate() {
         requestAnimationFrame(animate);
-        knot.rotation.x += 0.005;
-        knot.rotation.y += 0.007;
-        renderer.render(scene, camera);
+        knot.rotation.x += 0.005; knot.rotation.y += 0.007;
+        if (renderActive) renderer.render(scene, camera);
         renderer2.render(scene2, camera2);
     }
     animate();
 
-    // ========== PARTICLES (neural network, full page) ==========
+    // ========== PARTICLES, GLITCH, RESIZE ==========
     const pCanvas = document.getElementById('particles');
     const pCtx = pCanvas.getContext('2d');
-    pCanvas.width = window.innerWidth;
-    pCanvas.height = window.innerHeight;
+    pCanvas.width = window.innerWidth; pCanvas.height = window.innerHeight;
     let particles = [];
     let mousePos = { x: null, y: null };
     window.addEventListener('mousemove', (e) => { mousePos.x = e.x; mousePos.y = e.y; });
-
     class Particle {
         constructor() {
-            this.x = Math.random() * pCanvas.width;
-            this.y = Math.random() * pCanvas.height;
-            this.size = 1.5;
-            this.baseX = this.x;
-            this.baseY = this.y;
-            this.density = Math.random() * 20 + 5;
+            this.x = Math.random() * pCanvas.width; this.y = Math.random() * pCanvas.height; this.size = 1.5;
+            this.baseX = this.x; this.baseY = this.y; this.density = Math.random() * 20 + 5;
         }
         update() {
             if (!mousePos.x) return;
-            let dx = mousePos.x - this.x;
-            let dy = mousePos.y - this.y;
-            let dist = Math.sqrt(dx*dx + dy*dy);
+            let dx = mousePos.x - this.x; let dy = mousePos.y - this.y; let dist = Math.sqrt(dx*dx + dy*dy);
             if (dist < 100) {
-                let force = (100 - dist) / 100;
-                let dirX = dx / dist;
-                let dirY = dy / dist;
-                this.x -= dirX * force * this.density * 0.5;
-                this.y -= dirY * force * this.density * 0.5;
+                let force = (100 - dist) / 100; let dirX = dx / dist; let dirY = dy / dist;
+                this.x -= dirX * force * this.density * 0.5; this.y -= dirY * force * this.density * 0.5;
             } else {
                 if (this.x !== this.baseX) this.x += (this.baseX - this.x) * 0.05;
                 if (this.y !== this.baseY) this.y += (this.baseY - this.y) * 0.05;
@@ -847,76 +1271,50 @@
         }
         draw() {
             pCtx.fillStyle = getComputedStyle(document.body).getPropertyValue('--primary').trim() || '#00ffaa';
-            pCtx.beginPath();
-            pCtx.arc(this.x, this.y, this.size, 0, Math.PI*2);
-            pCtx.fill();
+            pCtx.beginPath(); pCtx.arc(this.x, this.y, this.size, 0, Math.PI*2); pCtx.fill();
         }
     }
-    for (let i=0; i<200; i++) particles.push(new Particle()); // dense network
-
+    for (let i=0; i<200; i++) particles.push(new Particle());
     function animateParticles() {
         pCtx.clearRect(0,0,pCanvas.width,pCanvas.height);
-        for (let p of particles) {
-            p.update();
-            p.draw();
-        }
-        // draw connections (neural network effect)
-        for (let i=0; i<particles.length; i++) {
-            for (let j=i+1; j<particles.length; j+=4) { // dense connections
-                let dx = particles[i].x - particles[j].x;
-                let dy = particles[i].y - particles[j].y;
-                let dist = Math.sqrt(dx*dx + dy*dy);
-                if (dist < 100) {
-                    pCtx.strokeStyle = getComputedStyle(document.body).getPropertyValue('--primary').trim() || '#00ffaa';
-                    pCtx.lineWidth = 0.3;
-                    pCtx.beginPath();
-                    pCtx.moveTo(particles[i].x, particles[i].y);
-                    pCtx.lineTo(particles[j].x, particles[j].y);
-                    pCtx.stroke();
-                }
-            }
-        }
+        particles.forEach(p => { p.update(); p.draw(); });
         requestAnimationFrame(animateParticles);
     }
     animateParticles();
 
-    // ========== GLITCH CANVAS BACKGROUND ==========
     const gCanvas = document.getElementById('glitch-canvas');
     const gCtx = gCanvas.getContext('2d');
-    gCanvas.width = window.innerWidth;
-    gCanvas.height = window.innerHeight;
-
+    gCanvas.width = window.innerWidth; gCanvas.height = window.innerHeight;
     function drawGlitch() {
         gCtx.clearRect(0,0,gCanvas.width,gCanvas.height);
-        gCtx.font = '12px "Fira Code"';
-        gCtx.fillStyle = '#00ffaa';
-        for (let i=0; i<40; i++) {
-            let x = Math.random() * gCanvas.width;
-            let y = Math.random() * gCanvas.height;
-            gCtx.fillText('>_' + Math.floor(Math.random()*999), x, y);
-        }
+        gCtx.font = '12px "Fira Code"'; gCtx.fillStyle = '#00ffaa';
+        for (let i=0; i<40; i++) { gCtx.fillText('>_' + Math.floor(Math.random()*999), Math.random()*gCanvas.width, Math.random()*gCanvas.height); }
         setTimeout(drawGlitch, 250);
     }
     drawGlitch();
 
-    // ========== SMOOTH SCROLL REVEAL ==========
     const sections = document.querySelectorAll('section');
     const observer = new IntersectionObserver((entries) => {
-        entries.forEach(entry => {
-            if (entry.isIntersecting) entry.target.classList.add('visible');
-        });
+        entries.forEach(e => { if (e.isIntersecting) e.target.classList.add('visible'); });
     }, { threshold: 0.2 });
     sections.forEach(s => observer.observe(s));
 
-    // ========== RESIZE HANDLER ==========
     window.addEventListener('resize', () => {
-        pCanvas.width = window.innerWidth;
-        pCanvas.height = window.innerHeight;
-        gCanvas.width = window.innerWidth;
-        gCanvas.height = window.innerHeight;
+        pCanvas.width = window.innerWidth; pCanvas.height = window.innerHeight;
+        gCanvas.width = window.innerWidth; gCanvas.height = window.innerHeight;
         camera.aspect = container.clientWidth / container.clientHeight;
         camera.updateProjectionMatrix();
         renderer.setSize(container.clientWidth, container.clientHeight);
+    });
+
+    // Project cards click handler (attach after DOM)
+    document.querySelectorAll('.card').forEach(card => {
+        card.addEventListener('click', function() {
+            const title = this.dataset.title;
+            const desc = this.dataset.desc;
+            const repo = this.dataset.repo;
+            showModal(title, desc, repo);
+        });
     });
 })();
 </script>
