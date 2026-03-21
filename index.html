@@ -12,6 +12,7 @@
         body.light { --primary: #ffaa00; --bg: #fef9e7; --text: #222; --card-bg: rgba(255,255,200,0.6); }
         body.dark { --primary: #00ffaa; --bg: #0a0a14; --text: #eee; --card-bg: rgba(20,30,40,0.4); }
         * { margin:0; padding:0; box-sizing:border-box; cursor:none; }
+        button, a, input { cursor: pointer !important; }
         body { font-family:'Inter',sans-serif; background:var(--bg); color:var(--text); overflow-x:hidden; line-height:1.6; transition:background 0.4s,color 0.3s; }
         #cursor-dot, #cursor-ring, #cursor-data { position:fixed; pointer-events:none; z-index:10000; transition: opacity 0.2s; }
         #cursor-dot { width:6px; height:6px; background:var(--primary); border-radius:50%; transform:translate(-50%,-50%); box-shadow:0 0 15px var(--primary); }
@@ -20,7 +21,7 @@
         body.modal-open #cursor-dot,
         body.modal-open #cursor-ring,
         body.modal-open #cursor-data { opacity:0; pointer-events:none; }
-        body.modal-open { cursor:auto; }
+        body.modal-open { cursor: default !important; }
         #torch-toggle { position:fixed; bottom:30px; right:30px; width:60px; height:60px; background:rgba(30,30,50,0.7); backdrop-filter:blur(10px); border:2px solid var(--primary); border-radius:50%; display:flex; align-items:center; justify-content:center; z-index:1000; cursor:none; box-shadow:0 0 20px var(--primary); }
         #torch-overlay { position:fixed; top:0; left:0; width:100%; height:100%; pointer-events:none; z-index:10002; background:black; opacity:0; transition:opacity 0.3s; mask:radial-gradient(circle 150px at 0px 0px, transparent 0%, black 100%); -webkit-mask:radial-gradient(circle 150px at 0px 0px, transparent 0%, black 100%); }
         body.torch-mode #torch-overlay { opacity:0.95; }
@@ -57,7 +58,7 @@
         .tech-tag { background:rgba(0,255,170,0.1); color:var(--primary); padding:6px 16px; border-radius:30px; font-size:0.85rem; border:1px solid rgba(0,255,170,0.4); display:inline-block; margin:5px 5px 0 0; }
         .card-footer { display:flex; justify-content:space-between; align-items:center; margin-top:20px; }
         .repo-link { color:var(--primary); font-family:'Fira Code',monospace; font-size:0.9rem; text-decoration:none; border-bottom:1px dashed; }
-        .modal { display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.9); backdrop-filter:blur(12px); align-items:center; justify-content:center; z-index:10000; opacity:0; transition:opacity 0.3s; }
+        .modal { display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.9); backdrop-filter:blur(12px); align-items:center; justify-content:center; z-index:10000; opacity:0; transition:opacity 0.3s; cursor: default; }
         .modal.show { display:flex; opacity:1; }
         .modal-content { background:#0f0f1a; border:2px solid var(--primary); border-radius:40px; padding:45px; max-width:500px; width:90%; box-shadow:0 0 70px var(--primary); transform:scale(0.9); transition:transform 0.3s; }
         .modal.show .modal-content { transform:scale(1); }
@@ -65,7 +66,7 @@
         .modal-title { font-family:'Space Grotesk'; font-size:2.3rem; color:var(--primary); }
         .modal-body { margin:20px 0; }
         .modal-link { display:inline-block; margin-top:25px; color:white; background:var(--primary); padding:10px 25px; border-radius:40px; text-decoration:none; font-weight:bold; }
-        #terminal-overlay { position:fixed; top:0; left:0; width:100%; height:100%; background:#0c0c0c; color:#0f0; font-family:'Fira Code',monospace; padding:20px; z-index:2000; display:none; border:2px solid #0f0; overflow:hidden; flex-direction:column; }
+        #terminal-overlay { position:fixed; top:0; left:0; width:100%; height:100%; background:#0c0c0c; color:#0f0; font-family:'Fira Code',monospace; padding:20px; z-index:2000; display:none; border:2px solid #0f0; overflow:hidden; flex-direction:column; cursor: default; }
         #terminal-overlay.show { display:flex; }
         #terminal-output { flex:1; overflow-y:auto; margin-bottom:10px; white-space:pre-wrap; font-size:14px; line-height:1.5; }
         #terminal-input-line { display:flex; align-items:center; background:#1a1a1a; padding:5px; border:1px solid #0f0; }
@@ -80,25 +81,7 @@
         #rotate-desk { position:fixed; bottom:30px; left:30px; width:60px; height:60px; background:rgba(30,30,50,0.7); backdrop-filter:blur(10px); border:2px solid var(--primary); border-radius:50%; display:flex; align-items:center; justify-content:center; z-index:1000; cursor:none; box-shadow:0 0 20px var(--primary); font-size:28px; color:var(--primary); }
         #keyboard-hint { position:fixed; bottom:100px; left:30px; color:var(--primary); font-family:'Fira Code',monospace; font-size:12px; background:rgba(0,0,0,0.5); padding:8px 12px; border-radius:20px; border:1px solid var(--primary); backdrop-filter:blur(5px); z-index:1000; }
         #reset-camera { position:fixed; top:100px; right:30px; background:rgba(30,30,50,0.7); backdrop-filter:blur(10px); border:2px solid var(--primary); border-radius:50%; width:60px; height:60px; display:flex; align-items:center; justify-content:center; z-index:1000; cursor:none; box-shadow:0 0 20px var(--primary); font-size:24px; color:var(--primary); display:none; }
-        .train-track {
-            white-space: nowrap;
-            overflow: hidden;
-            position: relative;
-            font-family: 'Fira Code', monospace;
-            font-size: 1.2rem;
-            color: var(--primary);
-            animation: marquee 20s linear infinite;
-            mask: linear-gradient(to right, transparent, black 20%, black 80%, transparent);
-            -webkit-mask: linear-gradient(to right, transparent, black 20%, black 80%, transparent);
-            background: rgba(0,0,0,0.8);
-            padding: 20px;
-            border-radius: 10px;
-            border: 1px solid var(--primary);
-        }
-        @keyframes marquee {
-            0% { transform: translateX(100%); }
-            100% { transform: translateX(-100%); }
-        }
+
         @media (max-width:900px) { #cursor-dot, #cursor-ring, #cursor-data, #torch-toggle, #torch-overlay, #rotate-desk, #keyboard-hint, #reset-camera { display:none; } body { cursor:auto; } .hero { flex-direction:column; } #three-container { width:100%; height:300px; position:relative; right:0; } .about-grid { grid-template-columns:1fr; } nav { gap:20px; padding:10px 20px; } }
         body.modal-open #three-container { pointer-events: none; }
     </style>
@@ -149,7 +132,7 @@
 I am a developer passionate about building intelligent, interactive, and user-centric software systems that combine modern technologies such as Artificial Intelligence, Computer Vision, Web Development, and Software Engineering principles. My work focuses on solving real-world problems through innovative digital solutions that integrate machine learning, gesture recognition, human–computer interaction, and scalable web architectures.Throughout my development journey, I have worked on several projects that demonstrate my ability to design and implement complete end-to-end systems, from conceptualization and architecture to deployment and real-world usability.
 The following projects represent my most significant work and reflect my approach to software engineering: innovation, problem solving, and building practical systems with real-world applications.
 
-My portfolio reflects my commitment to building innovative technology solutions that combine artificial intelligence, computer vision, and modern web development practices. Through projects such as Air Paint and AuraHire, I have explored how advanced technologies can improve human–computer interaction and create intelligent digital systems.
+My portfolio reflects my commitment to building innovative technology solutions that combine artificial intelligence, computer vision, and modern web development practices. Through projects such as Air Paint & Improvyu, I have explored how advanced technologies can improve human–computer interaction and create intelligent digital systems.
 
 At the same time, my experience with Java and web development has strengthened my understanding of fundamental software engineering principles and structured programming techniques.
 
@@ -204,7 +187,7 @@ Moving forward, I aim to continue developing systems that leverage AI, machine l
     <h2 class="title">// connect</h2>
     <p style="margin-bottom:50px;">collaborate · innovate · build</p>
     <div class="contact-links">
-        <a href="mailto:mmane9313@gmail.com">email</a>
+        <a href="mailto:rmane9313@gmail.com">email</a>
         <a href="https://github.com/RAJ-MANE" target="_blank">github</a>
         <a href="https://www.linkedin.com/in/raj-mane-268a95371" target="_blank">linkedin</a>
     </div>
@@ -304,29 +287,85 @@ Moving forward, I aim to continue developing systems that leverage AI, machine l
         terminalOutput.scrollTop = terminalOutput.scrollHeight;
     }
 
-    function processCommand(cmd) {
-        const lower = cmd.trim().toLowerCase();
-        if (lower === 'help') {
-            addTerminalLine('> Available commands: about, projects, contact, github, clear');
-        } else if (lower === 'about') {
-            addTerminalLine('> Opening About modal...');
-            showModal('About Raj Mane', 'AI Engineer, Computer Vision specialist. Tech Head at AXIOS, Intern @ Dilatio.', 'https://linkedin.com/in/raj-mane-268a95371');
-        } else if (lower === 'projects') {
-            addTerminalLine('> Opening Projects modal...');
-            let projList = 'Featured projects:\n  - AIR_PAINT_BASE\n  - SUPPLY_CHAIN_MANAGEMENT_JAVA\n  - ImprovYu\n  - Car_Game_C\n  - FACE.RECOGNITION\nView details by clicking cards.';
-            addTerminalLine('> ' + projList);
-        } else if (lower === 'contact') {
-            addTerminalLine('> Opening Contact modal...');
-            showModal('Contact', 'Email: mmane9313@gmail.com\nGitHub: RAJ-MANE\nLinkedIn: /raj-mane-268a95371', 'mailto:rmane9313@gmail.com');
-        } else if (lower === 'github') {
-            addTerminalLine('> Opening GitHub profile...');
-            window.open('https://github.com/RAJ-MANE', '_blank');
-        } else if (lower === 'clear') {
-            terminalOutput.innerHTML = '';
-        } else if (lower !== '') {
-            addTerminalLine(`> Command not recognized: ${cmd}`);
+   function processCommand(cmd) {
+    const lower = cmd.trim().toLowerCase();
+    
+    // Existing commands
+    if (lower === 'help') {
+        addTerminalLine('> Available commands: about, projects, contact, github, clear, whoami, skills, open <project>, github <project>, camera reset, theme light/dark');
+    } else if (lower === 'about') {
+        addTerminalLine('> Opening About modal...');
+        showModal('About Raj Mane', 'AI Engineer, Computer Vision specialist. Tech Head at AXIOS, Intern @ Dilatio.', 'https://linkedin.com/in/raj-mane-268a95371');
+    } else if (lower === 'contact') {
+        addTerminalLine('> Opening Contact modal...');
+        showModal('Contact', 'Email: rmane9313@gmail.com\nGitHub: RAJ-MANE\nLinkedIn: /raj-mane-268a95371', 'mailto:rmane9313@gmail.com');
+    } else if (lower === 'github') {
+        addTerminalLine('> Opening GitHub profile...');
+        window.open('https://github.com/RAJ-MANE', '_blank');
+    } else if (lower === 'clear') {
+        terminalOutput.innerHTML = '';
+    
+    // New commands
+    } else if (lower === 'whoami') {
+        addTerminalLine('> Raj Mane - Computer Engineer | AI Developer | Tech Head');
+    
+    } else if (lower === 'skills') {
+        addTerminalLine('> Skills: AI, Computer Vision, Java, C++, Web Dev, Three.js');
+    
+    } else if (lower === 'projects') {
+        addTerminalLine('> Projects:');
+        addTerminalLine('  - airpaint');
+        addTerminalLine('  - improvyu');
+        addTerminalLine('  - supplychain');
+        addTerminalLine('Type: open <project>');
+    
+    } else if (lower.startsWith('open ')) {
+        const project = lower.split(' ')[1];
+        if (project === 'airpaint') {
+            showModal('AIR PAINT', 'Gesture drawing using OpenCV + MediaPipe', 'https://github.com/RAJ-MANE/AIR_PAINT_BASE');
+        } else if (project === 'improvyu') {
+            showModal('ImprovYu', 'AI Interview Coach', 'https://github.com/RAJ-MANE/MODEL_FORGE');
+        } else if (project === 'supplychain') {
+            showModal('Supply Chain', 'Java OOP project', 'https://github.com/RAJ-MANE/SUPPLY_CHAIN_MANAGEMENT_JAVA');
+        } else {
+            addTerminalLine('> Project not found');
         }
+    
+    } else if (lower.startsWith('github ')) {
+        const project = lower.split(' ')[1];
+        const links = {
+            airpaint: 'https://github.com/RAJ-MANE/AIR_PAINT_BASE',
+            improvyu: 'https://github.com/RAJ-MANE/MODEL_FORGE',
+            supplychain: 'https://github.com/RAJ-MANE/SUPPLY_CHAIN_MANAGEMENT_JAVA'
+        };
+        if (links[project]) {
+            window.open(links[project], '_blank');
+        } else {
+            addTerminalLine('> Repo not found');
+        }
+    
+
+    } else if (lower === 'camera reset') {
+        gsap.to(camera.position, {
+            x: 3, y: 2.5, z: 9, duration: 1,
+            onUpdate: () => camera.lookAt(0, 1.5, -0.5)
+        });
+        addTerminalLine('> Camera reset');
+    
+    } else if (lower === 'theme light') {
+        document.body.classList.remove('dark');
+        document.body.classList.add('light');
+        addTerminalLine('> Light theme activated');
+    
+    } else if (lower === 'theme dark') {
+        document.body.classList.remove('light');
+        document.body.classList.add('dark');
+        addTerminalLine('> Dark theme activated');
+    
+    } else if (lower !== '') {
+        addTerminalLine(`> Command not recognized: ${cmd}`);
     }
+}
 
     let cmdHistory = [];
     let historyIndex = -1;
@@ -509,15 +548,17 @@ setTimeout(typeEffect, 500);
     backCtx.fillStyle = '#000000';
     backCtx.fillRect(0,0,512,256);
     backCtx.font = 'bold 48px Arial';
-    backCtx.fillStyle = '#ff0000';
-    backCtx.fillText('Nothing to see here', 10, 100);
-    backCtx.fillText('Developer secrets on the other side.', 10, 150);
+    backCtx.shadowColor = "#00ffaa";
+    backCtx.shadowBlur = 15;
+    backCtx.fillStyle = '#00ffaa';
+    backCtx.fillText('SYSTEM LOCKED 🔐', 10, 100);
+    backCtx.fillText('UNLOCK POTENTIAL', 10, 150);
     const backTex = new THREE.CanvasTexture(backCanvas);
     // Flip horizontally if needed to avoid mirrored text
     backTex.wrapS = THREE.RepeatWrapping;
-    backTex.repeat.x = -1;
+    backTex.repeat.x = 1;
     // Add subtle emissive glow
-    const backBoardMat = new THREE.MeshStandardMaterial({ map: backTex, emissive: 0xff2222, emissiveIntensity: 0.25 });
+    const backBoardMat = new THREE.MeshStandardMaterial({ map: backTex, emissive: 0x00ffaa, emissiveIntensity: 0.25 });
 
     // ===== DESK GROUP =====
     const deskGroup = new THREE.Group();
@@ -706,6 +747,66 @@ setTimeout(typeEffect, 500);
     base.position.set(0, -1.45, 0); base.castShadow = true;
     monitorGroup.add(base);
     deskGroup.add(monitorGroup);
+
+    // ===== KEYBOARD =====
+    const keyboardGroup = new THREE.Group();
+
+    const keyboardBase = new THREE.Mesh(
+        new THREE.BoxGeometry(2.0, 0.08, 0.7),
+        new THREE.MeshStandardMaterial({ color: 0x222222 })
+    );
+    keyboardBase.position.y = 0.04;
+    keyboardBase.castShadow = true;
+    keyboardBase.receiveShadow = true;
+    keyboardGroup.add(keyboardBase);
+
+    // keys grid
+    for (let i = 0; i < 5; i++) {
+        for (let j = 0; j < 12; j++) {
+            const key = new THREE.Mesh(
+                new THREE.BoxGeometry(0.12, 0.04, 0.12),
+                new THREE.MeshStandardMaterial({ color: 0x444444 })
+            );
+            key.position.set(
+                -0.9 + j * 0.16,
+                0.08,
+                -0.25 + i * 0.15
+            );
+            key.castShadow = true;
+            keyboardGroup.add(key);
+        }
+    }
+
+    keyboardGroup.position.set(0, 0.12, 0.6);
+    keyboardGroup.rotation.x = -0.1;
+
+    deskGroup.add(keyboardGroup);
+
+    // ===== MOUSE =====
+    const mouseGroup = new THREE.Group();
+
+    const mouseBody = new THREE.Mesh(
+        new THREE.SphereGeometry(0.28, 16, 16),
+        new THREE.MeshStandardMaterial({ color: 0x111111 })
+    );
+    mouseBody.scale.y = 0.45;
+    mouseBody.castShadow = true;
+    mouseBody.receiveShadow = true;
+    mouseGroup.add(mouseBody);
+
+    // scroll wheel
+    const wheel = new THREE.Mesh(
+        new THREE.CylinderGeometry(0.05, 0.05, 0.08, 8),
+        new THREE.MeshStandardMaterial({ color: 0x888888 })
+    );
+    wheel.rotation.x = Math.PI / 2;
+    wheel.position.set(0, 0.07, 0);
+    mouseGroup.add(wheel);
+
+    mouseGroup.position.set(1.4, 0.12, 0.55);
+    mouseGroup.rotation.y = -0.3;
+
+    deskGroup.add(mouseGroup);
 // ========== HOVER ANIMATION FOR 3D OBJECTS ==========
 let currentHover = null;
 const hoverScale = 1.05;
@@ -920,123 +1021,7 @@ renderer.domElement.addEventListener('mousemove', (e) => {
     const pinkNote = createStickyNote('#b24a6a', 'CONNECT', 1.5);
     deskGroup.add(greenNote);
     deskGroup.add(pinkNote);
-// ========== 3D TRAIN FOR DRAWER ==========
-const trainGroup = new THREE.Group();
-trainGroup.visible = false; // hidden until drawer opens
-trainGroup.position.set(-0.5, 0.15, 0.2); // sits near the drawer on the desk
-deskGroup.add(trainGroup); // attach to desk so it rotates/moves with desk
 
-// Create locomotive
-const locoMat = new THREE.MeshStandardMaterial({ color: 0xffaa00 });
-const locoBody = new THREE.Mesh(new THREE.BoxGeometry(0.6, 0.3, 0.3), locoMat);
-locoBody.position.set(0, 0.15, 0);
-locoBody.castShadow = true;
-locoBody.receiveShadow = true;
-trainGroup.add(locoBody);
-
-const chimney = new THREE.Mesh(new THREE.CylinderGeometry(0.1, 0.1, 0.15), new THREE.MeshStandardMaterial({ color: 0xcccccc }));
-chimney.position.set(0.2, 0.3, 0);
-chimney.castShadow = true;
-trainGroup.add(chimney);
-
-const roof = new THREE.Mesh(new THREE.BoxGeometry(0.4, 0.1, 0.25), new THREE.MeshStandardMaterial({ color: 0xaa3333 }));
-roof.position.set(0, 0.3, 0);
-roof.castShadow = true;
-trainGroup.add(roof);
-
-// Create coaches (4 coaches)
-const coachColors = [0x33aa33, 0x3366aa, 0xaa33aa, 0xaa6633];
-const achievements = [
-    "Grade 10: Built strong academic foundation.",
-    "Grade 12: Focused on PCM and problem solving.",
-    "JEE: Developed analytical thinking and consistency.",
-    "CET: Strengthened engineering entrance concepts."
-];
-for (let i = 0; i < 4; i++) {
-    const coachGroup = new THREE.Group();
-    coachGroup.position.set(0.8 + i * 0.7, 0, 0); // spaced out
-
-    const coachBase = new THREE.Mesh(new THREE.BoxGeometry(0.6, 0.25, 0.3), new THREE.MeshStandardMaterial({ color: coachColors[i] }));
-    coachBase.position.y = 0.15;
-    coachBase.castShadow = true;
-    coachBase.receiveShadow = true;
-    coachGroup.add(coachBase);
-
-    const coachRoof = new THREE.Mesh(new THREE.BoxGeometry(0.4, 0.1, 0.25), new THREE.MeshStandardMaterial({ color: 0x888888 }));
-    coachRoof.position.y = 0.3;
-    coachRoof.castShadow = true;
-    coachGroup.add(coachRoof);
-
-    // Store achievement index on the group
-    coachGroup.userData.achievementIndex = i;
-    coachGroup.userData.achievementText = achievements[i];
-
-    trainGroup.add(coachGroup);
-}
-
-// Add wheels
-function addWheels(parent, xOff, zOff) {
-    const wheelMat = new THREE.MeshStandardMaterial({ color: 0x333333 });
-    for (let side = -1; side <= 1; side += 2) {
-        const wheel = new THREE.Mesh(new THREE.CylinderGeometry(0.1, 0.1, 0.08, 16), wheelMat);
-        wheel.rotation.z = Math.PI/2;
-        wheel.position.set(xOff, 0.08, side * 0.18);
-        wheel.castShadow = true;
-        parent.add(wheel);
-    }
-}
-addWheels(locoBody, 0.2, 0);
-addWheels(locoBody, -0.2, 0);
-trainGroup.children.forEach(child => {
-    if (child.isMesh && child.material.color.getHex() !== 0x333333) {
-        // skip if it's a wheel (already added)
-    } else if (child.isGroup) {
-        addWheels(child, 0.2, 0);
-        addWheels(child, -0.2, 0);
-    }
-});
-
-// Animation variables
-let trainAnimProgress = 0;
-let trainAnimDirection = 1;
-let trainAnimActive = false;
-
-function animateTrain() {
-    if (!trainAnimActive) return;
-    trainAnimProgress += 0.005 * trainAnimDirection;
-    if (trainAnimProgress > 1) {
-        trainAnimProgress = 1;
-        trainAnimDirection = -1;
-    } else if (trainAnimProgress < 0) {
-        trainAnimProgress = 0;
-        trainAnimDirection = 1;
-    }
-    // Move train back and forth slightly
-    trainGroup.position.x = -0.5 + trainAnimProgress * 0.2;
-    requestAnimationFrame(animateTrain);
-}
-
-window.startTrainAnimation = function() {
-    trainGroup.visible = true;
-    if (!trainAnimActive) {
-        trainAnimActive = true;
-        animateTrain();
-    }
-};
-
-window.stopTrainAnimation = function() {
-    trainGroup.visible = false;
-    trainAnimActive = false;
-};
-
-// Add coaches to interactiveObjects so they can be clicked
-setTimeout(() => {
-    trainGroup.children.forEach(child => {
-        if (child.isGroup) { // each coach is a group
-            interactiveObjects.push({ obj: child, type: `coach-${child.userData.achievementIndex}` });
-        }
-    });
-}, 100); // slight delay to ensure interactiveObjects is defined
     // ========== FLOATING ANIMATION (will be paused on user interaction) ==========
     let floatingTween = gsap.to(deskGroup.rotation, { 
         y: 0.02, 
@@ -1119,7 +1104,9 @@ setTimeout(() => {
         { obj: drawerGroup, type: 'drawer' },
         { obj: greenNote, type: 'noteBio' },
         { obj: pinkNote, type: 'noteConnect' },
-        { obj: webcamMeshGroup, type: 'webcam' }
+        { obj: webcamMeshGroup, type: 'webcam' },
+        { obj: keyboardGroup, type: 'keyboard' },
+        { obj: mouseGroup, type: 'mouse' }
     ];
 
     let isDrawerOpen = false;
@@ -1156,26 +1143,46 @@ setTimeout(() => {
                 terminalInput.focus();
                 break;
             case 'drawer':
-    if (!isDrawerOpen) {
-        gsap.to(drawerGroup.position, { z: 1.4, duration: 0.5, ease: "backOut" });
+                if (!isDrawerOpen) {
+                    gsap.to(drawerGroup.position, { 
+                        z: 1.4, 
+                        duration: 0.5, 
+                        ease: "backOut",
+                        onComplete: () => {
+                            showModal(
+                                "Coming Soon 🚧",
+                                "This feature is under development. Stay tuned!",
+                                "#"
+                            );
 
-        // Show 3D train
-        if (typeof startTrainAnimation === "function") {
-            startTrainAnimation();
-        }
+                            // auto close drawer after modal closes
+                            const closeHandler = () => {
+                                gsap.to(drawerGroup.position, { 
+                                    z: 0.8, 
+                                    duration: 0.5, 
+                                    ease: "backOut"
+                                });
+                                isDrawerOpen = false;
+                                document.querySelector('.modal-close')
+                                    .removeEventListener('click', closeHandler);
+                            };
 
-        isDrawerOpen = true;
-    } else {
-        gsap.to(drawerGroup.position, { z: 0.8, duration: 0.5, ease: "backOut" });
+                            document.querySelector('.modal-close')
+                                .addEventListener('click', closeHandler);
+                        }
+                    });
 
-        // Hide 3D train
-        if (typeof stopTrainAnimation === "function") {
-            stopTrainAnimation();
-        }
+                    isDrawerOpen = true;
 
-        isDrawerOpen = false;
-    }
-    break;
+                } else {
+                    gsap.to(drawerGroup.position, { 
+                        z: 0.8, 
+                        duration: 0.5, 
+                        ease: "backOut"
+                    });
+                    isDrawerOpen = false;
+                }
+                break;
             case 'noteBio':
                 gsap.to(camera.position, { x: -1.2, y: 1.8, z: 2.5, duration: 1, onUpdate: () => camera.lookAt(-1.2, 1.4, -2.0) });
                 document.getElementById('reset-camera').style.display = 'flex';
@@ -1189,18 +1196,6 @@ setTimeout(() => {
             case 'webcam':
                 startWebcam();
                 break;
-        }        // Check if clicked object is a train coach
-        if (hit.type && hit.type.startsWith('coach-')) {
-            const index = parseInt(hit.type.split('-')[1]);
-            const achievements = [
-                "Grade 10: Built strong academic foundation.",
-                "Grade 12: Focused on PCM and problem solving.",
-                "JEE: Developed analytical thinking and consistency.",
-                "CET: Strengthened engineering entrance concepts.",
-                "Engineering: Exploring AI, Web Dev, and systems.",
-                "Hackathons: Built real-world innovative projects."
-            ];
-            showModal("My Journey", achievements[index] || "Achievement milestone", "#");
         }
         if (!hit) {
             gsap.to(camera.position, { x: 3, y: 2.5, z: 9, duration: 1, onUpdate: () => camera.lookAt(0, 1.5, -0.5) });
